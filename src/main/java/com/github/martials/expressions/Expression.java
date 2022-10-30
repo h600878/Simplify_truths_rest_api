@@ -1,6 +1,8 @@
 package com.github.martials.expressions;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.martials.Language;
+import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -157,19 +159,21 @@ public class Expression {
      * Calls all the laws then checks if the expression has been changed after
      */
     public void laws() { // TODO translate using headers
+        boolean isEnglish = SimplifyTruthsRestApiApplication.lang == Language.english;
+
         String exp = toString();
         eliminationOfImplication();
-        exp = isChangedThenAdd(exp, "Elimination of implication");
+        exp = isChangedThenAdd(exp, isEnglish ? "Elimination of implication" : "Eliminering av implikasjon");
         doubleNegation();
-        exp = isChangedThenAdd(exp, "Double negation");
+        exp = isChangedThenAdd(exp, isEnglish ? "Double negation" : "Dobbel negasjon");
         deMorgansLaws();
-        exp = isChangedThenAdd(exp, "De Morgan's Laws");
+        exp = isChangedThenAdd(exp, isEnglish ? "De Morgan's Laws" : "De Morgans lover");
         absorptionLaw();
-        exp = isChangedThenAdd(exp, "Absorption law");
+        exp = isChangedThenAdd(exp, isEnglish ? "Absorption law" : "Absorpsjons loven");
         associativeProperty();
-        exp = isChangedThenAdd(exp, "Associative property");
+        exp = isChangedThenAdd(exp, isEnglish ? "Associative property" : "Assosisative egenskaper");
         distributiveProperty();
-        isChangedThenAdd(exp, "Distributivity");
+        isChangedThenAdd(exp, isEnglish ? "Distributivity" : "Distributivitet");
     }
 
     /**
