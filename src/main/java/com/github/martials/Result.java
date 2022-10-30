@@ -8,6 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public record Result(@NotNull Status status, @NotNull String before, @NotNull String after,
-                     @NotNull List<OrderOperations> orderOperations, @Nullable Expression expression) {
+                     @Nullable List<OrderOperations> orderOperations, @Nullable Expression expression) {
 
 }

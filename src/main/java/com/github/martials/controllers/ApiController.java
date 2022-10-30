@@ -8,12 +8,14 @@ import com.github.martials.expressions.Expression;
 import com.github.martials.utils.ExpressionUtils;
 import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.http.HttpHeaders;
+
 import java.util.Objects;
 
 @RestController
@@ -27,13 +29,17 @@ public class ApiController {
      */
     @NotNull
     @GetMapping("/api")
-    public Result simplify(@RequestParam(required = false) @NotNull final String exp,
-                           @RequestParam(required = false) final String lang,
+    public Result simplify(@RequestParam(defaultValue = "") @NotNull final String exp,
+                           @RequestParam(required = false) @Nullable final String lang,
                            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
 
         System.err.println("Language=" + header);
 
         setLanguage(lang, header);
+
+        if (exp.equals("")) {
+            return new Result(Status.NOT_FOUND, "", "", null, null);
+        }
 
         final Expression expression;
 
