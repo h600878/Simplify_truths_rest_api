@@ -1,6 +1,6 @@
-package com.github.martials.classes;
+package com.github.martials.expressions;
 
-import org.jetbrains.annotations.Contract;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,10 +19,10 @@ public class Operator { // TODO remove values[] and only use regex?
     private String[] values;
     private Pattern regex;
 
-    protected static final Operator implication;
-    protected static final Operator or;
-    protected static final Operator and;
-    protected static final Operator not;
+    public static final Operator implication;
+    public static final Operator or;
+    public static final Operator and;
+    public static final Operator not;
 
     public Operator(char operator, int weight, String[] values, @NotNull String regex) {
         this.operator = operator;
@@ -117,6 +117,7 @@ public class Operator { // TODO remove values[] and only use regex?
     }
 
     @NotNull
+    @JsonIgnore
     public Pattern getRegex() {
         return regex;
     }

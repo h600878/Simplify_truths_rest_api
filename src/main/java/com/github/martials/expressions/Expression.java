@@ -1,5 +1,7 @@
-package com.github.martials.classes;
+package com.github.martials.expressions;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,7 +81,7 @@ public class Expression {
             }
 
             // If both are atomic
-            if (isAtomic() && otherExp.isAtomic() && atomic.equals(otherExp.atomic) && isNot() == otherExp.isNot()) {
+            if (isAtomic() && otherExp.isAtomic() && atomic.equals(otherExp.atomic) && isInverse() == otherExp.isInverse()) {
                 return true;
             }
             // If neither is atomic
@@ -98,33 +100,26 @@ public class Expression {
      * @return {boolean} Returns 'true' if this and other is the opposite of eachother, otherwise 'false'
      */
     public boolean equalsAndOpposite(@NotNull Expression other) {
-        if (this.numberOfChar(leading, '¬') % 2 == 1) {
+        if (StringUtils.numberOfChar(leading, '¬') % 2 == 1) {
             return comparePositiveEquals(this, other);
         }
-        else if (this.numberOfChar(other.leading, '¬') % 2 == 1) {
+        else if (StringUtils.numberOfChar(other.leading, '¬') % 2 == 1) {
             return comparePositiveEquals(other, this);
         }
         return false;
     }
 
     private boolean comparePositiveEquals(@NotNull Expression exp1, @NotNull Expression exp2) {
-        return new Expression(exp1.left, exp1.operator, exp1.right, exp1.atomic).equals(exp2);
-    }
-
-    /**
-     * Gets the number of a given character in a string
-     *
-     * @param string The string to be checked
-     * @param c      The 'char' that the method will look for
-     */
-    public int numberOfChar(@NotNull String string, char c) {
-        int numberOf = 0;
-        for (int i = 0; i < string.length(); i++) {
-            if (string.charAt(i) == c) {
-                numberOf++;
+        Operator operator = exp1.operator;
+        if (exp1.leading.contains("¬(")) {
+            if (exp1.operator == Operator.and) {
+                operator = Operator.or;
+            }
+            else {
+                operator = Operator.and;
             }
         }
-        return numberOf;
+        return new Expression(exp1.left, operator, exp1.right, exp1.atomic).equals(exp2);
     }
 
     /**
@@ -133,11 +128,12 @@ public class Expression {
      * @return If it finds an atomic value, returns it, otherwise null
      */
     @Nullable
-    public String getAtomicValue() {
+    @JsonIgnore
+    public String findAtomicValue() {
         if (isAtomic()) {
             return atomic;
         }
-        return left.getAtomicValue();
+        return left.findAtomicValue();
     }
 
     /**
@@ -148,7 +144,7 @@ public class Expression {
      * @return {string} If the expression is changed, return the new toString() value of it, otherwise return the old
      */
     @NotNull
-    private String isChangedThenPush(@NotNull String exp, @NotNull String law) {
+    private String isChangedThenAdd(@NotNull String exp, @NotNull String law) {
         if (!exp.equals(toString())) {
             OrderOperations op = new OrderOperations(exp, toString(), law);
             Expression.orderOfOperations.add(op);
@@ -160,20 +156,20 @@ public class Expression {
     /**
      * Calls all the laws then checks if the expression has been changed after
      */
-    public void laws() { // TODO translate
+    public void laws() { // TODO translate using headers
         String exp = toString();
         eliminationOfImplication();
-        exp = isChangedThenPush(exp, "Elimination of implication");
+        exp = isChangedThenAdd(exp, "Elimination of implication");
         doubleNegation();
-        exp = isChangedThenPush(exp, "Double negation");
+        exp = isChangedThenAdd(exp, "Double negation");
         deMorgansLaws();
-        exp = isChangedThenPush(exp, "De Morgan's Laws");
+        exp = isChangedThenAdd(exp, "De Morgan's Laws");
         absorptionLaw();
-        exp = isChangedThenPush(exp, "Absorption law");
+        exp = isChangedThenAdd(exp, "Absorption law");
         associativeProperty();
-        exp = isChangedThenPush(exp, "Associative property");
+        exp = isChangedThenAdd(exp, "Associative property");
         distributiveProperty();
-        isChangedThenPush(exp, "Distributivity");
+        isChangedThenAdd(exp, "Distributivity");
     }
 
     /**
@@ -184,32 +180,32 @@ public class Expression {
         if (left != null && right != null) {
             final String exp = toString();
 
-            if (operator == Operator.and && !isNot() || isAtomic()) {
+            if (operator == Operator.and && !isInverse() || isAtomic()) {
                 removeBothSides(this);
             }
             // One is atomic, and the other is not
             else if (left.isAtomic() || right.isAtomic()) {
-                if (operator == left.operator && !left.isNot()) {
+                if (operator == left.operator && !left.isInverse()) {
                     removeBothSides(left);
                 }
-                else if (operator == right.operator && !right.isNot()) {
+                else if (operator == right.operator && !right.isInverse()) {
                     removeBothSides(right);
                 }
             }
             // Neither is atomic
             else if (!(left.isAtomic() || right.isAtomic())) {
-                if (this.left.operator == right.operator && !left.isNot() && !right.isNot()) {
+                if (this.left.operator == right.operator && !left.isInverse() && !right.isInverse()) {
                     removeBothSides(left);
                     removeBothSides(right);
                 }
-                if (operator == left.operator && !left.isNot()) {
+                if (operator == left.operator && !left.isInverse()) {
                     removeBothSides(left);
                 }
-                else if (operator == right.operator && !right.isNot()) {
+                else if (operator == right.operator && !right.isInverse()) {
                     removeBothSides(right);
                 }
             }
-            this.isChangedThenPush(exp, "Removal of parentheses");
+            this.isChangedThenAdd(exp, "Removal of parentheses");
         }
     }
 
@@ -231,10 +227,10 @@ public class Expression {
             if (left.left != null && left.right != null && right.left != null && right.right != null &&
                     left.operator != operator) {
 
-                final String leftLeft = left.left.getAtomicValue();
-                final String leftRight = left.right.getAtomicValue();
-                final String rightLeft = right.left.getAtomicValue();
-                final String rightRight = right.right.getAtomicValue();
+                final String leftLeft = left.left.findAtomicValue();
+                final String leftRight = left.right.findAtomicValue();
+                final String rightLeft = right.left.findAtomicValue();
+                final String rightRight = right.right.findAtomicValue();
 
                 if (Objects.equals(leftLeft, rightLeft) && !Objects.equals(leftRight, rightRight)) {
                     setObjects(left.right, right.right, left.left);
@@ -284,7 +280,7 @@ public class Expression {
 
         if (left != null && right != null) {
             // Left and right side uses negation
-            if (left.isNot() && right.isNot()) {
+            if (left.isInverse() && right.isInverse()) {
                 Operator newOperator = null;
 
                 if (operator.equals(Operator.and)) {
@@ -303,25 +299,25 @@ public class Expression {
                 }
             }
             // The entire expression uses negation
-            else if (isNot()) {
+            else if (isInverse()) {
 
                 if (left != null && right != null) {
-                    if (left.isNot()) {
+                    if (left.isInverse()) {
                         setNot(left, right);
                     }
-                    else if (right.isNot()) {
+                    else if (right.isInverse()) {
                         setNot(right, left);
                     }
                 }
             }
             // Left side uses negation, but right side does not
-            else if (left.isNot() && !right.isNot()) {
+            else if (left.isInverse() && !right.isInverse()) {
                 left.deMorgansLaws();
             }
         }
     }
 
-    private void inverse() {
+    private void removeLeadingAndTrailing() {
         leading = "";
         trailing = "";
         operator = operator == Operator.and ? Operator.or : Operator.and;
@@ -337,7 +333,7 @@ public class Expression {
     }
 
     private void setNot(@NotNull Expression remove, @NotNull Expression add) {
-        inverse();
+        removeLeadingAndTrailing();
         remove.removeNot();
         add.leading = "¬";
         if (!add.isAtomic()) {
@@ -351,8 +347,9 @@ public class Expression {
      *
      * @return Returns 'true' if it contains 'not', otherwise 'false'
      */
-    public boolean isNot() {
-        return numberOfChar(leading, '¬') % 2 == 1;
+    @JsonIgnore
+    public boolean isInverse() {
+        return StringUtils.numberOfChar(leading, '¬') % 2 == 1;
     }
 
     /**
@@ -378,9 +375,9 @@ public class Expression {
 
         if (left != null && left.isAtomic() && right.isAtomic() && left.atomic.compareTo(right.atomic) >= 0) {
             String exp = toString();
-            if (!Objects.equals(left.atomic, right.atomic) || left.equalsAndOpposite(right) && !right.isNot()) {
+            if (!Objects.equals(left.atomic, right.atomic) || left.equalsAndOpposite(right) && !right.isInverse()) {
                 swap();
-                isChangedThenPush(exp, "Commutative");
+                isChangedThenAdd(exp, "Commutative");
             }
         }
     }
@@ -439,11 +436,11 @@ public class Expression {
             }
             else { // Neither of the expressions are atomic, eg: (A & B) | (A & B)
                 if (left.equals(right)) {
-                    if (!left.isNot() && !right.isNot() || left.isNot() && right.isNot()) {
+                    if (!left.isInverse() && !right.isInverse() || left.isInverse() && right.isInverse()) {
 
                         removeRight(this);
                     }
-                    if (!left.isNot()) {
+                    if (!left.isInverse()) {
                         left.leading = "";
                         left.trailing = "";
                     }
@@ -484,7 +481,7 @@ public class Expression {
     }
 
     private void removeRight(@NotNull Expression exp) {
-        if (exp.isNot() && exp.left != null) {
+        if (exp.isInverse() && exp.left != null) {
             exp.left.leading = "¬";
         }
         exp.leading = "";
@@ -512,7 +509,7 @@ public class Expression {
             }
             // Removed the entire right side
             else if ((operator == Operator.or && right.operator == Operator.and || operator == Operator.and &&
-                    right.operator == Operator.or) && !right.isNot() && (leftEqualsLeft || leftEqualsRight)) {
+                    right.operator == Operator.or) && !right.isInverse() && (leftEqualsLeft || leftEqualsRight)) {
                 if (removeLeft) {
                     this.left = right;
                 }
@@ -528,7 +525,7 @@ public class Expression {
             // Removes the left side of the right side
             else {
                 if (leftEqualsLeft && (this.operator != Operator.implication || right.operator == Operator.and) &&
-                        !right.isNot() || left.equalsAndOpposite(right.left) && this.operator == Operator.or &&
+                        !right.isInverse() || left.equalsAndOpposite(right.left) && this.operator == Operator.or &&
                         right.operator == Operator.and || left.equalsAndOpposite(right.right)) {
                     right.left = right.right;
                     removeRight(right);
@@ -607,7 +604,7 @@ public class Expression {
             result = !left || right;
         }
 
-        if (isNot()) {
+        if (isInverse()) {
             result = !result;
         }
         return result;
@@ -701,7 +698,7 @@ public class Expression {
         if (this.isAtomic()) {
             return this.leading + this.atomic;
         }
-        var s = this.leading;
+        String s = this.leading;
         if (this.left != null) {
             s += this.left.toString();
         }

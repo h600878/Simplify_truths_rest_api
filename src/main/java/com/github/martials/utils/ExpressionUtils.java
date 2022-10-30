@@ -1,5 +1,10 @@
-package com.github.martials.classes;
+package com.github.martials.utils;
 
+import com.github.martials.Language;
+import com.github.martials.SimplifyTruthsRestApiApplication;
+import com.github.martials.expressions.CenterOperator;
+import com.github.martials.expressions.Expression;
+import com.github.martials.expressions.Operator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -34,7 +39,7 @@ public abstract class ExpressionUtils {
                 exp.appendLeading("¬");
             }
             if (stringExp.contains("(") || stringExp.contains(")")) {
-                stringExp = stringExp.replaceAll("^[()]$", ""); // TODO test
+                stringExp = stringExp.replaceAll("^[()]$", "");
             }
             exp.setAtomic(stringExp);
             if (simplify) {
@@ -172,19 +177,16 @@ public abstract class ExpressionUtils {
      * The parentheses do not match.
      *
      * @param stringExp A string in the style of a truth expression
-     *                  //     * @param illegalChar      A string message for illegal characters
-     *                  //     * @param missingChar      A string message for missing characters
-     *                  //     * @param atIndex          A string message for displaying index
-     *                  //     * @param expressionTooBig A string message when the expression is too big
      */
     @NotNull
     public static String isLegalExpression(@NotNull String stringExp) {
 
-        // TODO translate using language in header
-        final String illegalChar = "Illegal character",
-                missingChar = "Missing character",
-                atIndex = "at index:",
-                expressionTooBig = "Expression too big";
+        boolean isEnglish = SimplifyTruthsRestApiApplication.lang == Language.english;
+
+        final String illegalChar = isEnglish ? "Illegal character" : "Ugyldig tegn",
+                missingChar = isEnglish ? "Missing character" : "Manglende tegn",
+                atIndex = isEnglish ? "at index:" : "ved indeks:",
+                expressionTooBig = isEnglish ? "Expression too big" : "Uttrykket er for stort";
 
         final Pattern regex = Pattern.compile("^[^a-zA-ZæøåÆØÅ0-9()⋁⋀➔¬\\[\\]]|]\\[|\\)\\[|\\)\\(|\\(\\)$");
         final Matcher matcher = regex.matcher(stringExp);
@@ -203,6 +205,9 @@ public abstract class ExpressionUtils {
             char charAtI = stringExp.charAt(i);
 
             if (!insideSquare && Operator.isOperator(charAtI) && charAtI != '¬') {
+                if (i == 0) {
+                    return error(charAtI, i, 10, illegalChar, atIndex);
+                }
                 numberOfOperators++;
                 if (numberOfOperators > 9) {
                     return expressionTooBig;
@@ -314,45 +319,4 @@ public abstract class ExpressionUtils {
         return is;
     }
 
-    @NotNull
-    public static String replaceOperators(@NotNull String exp) {
-
-        int startIndex = 0;
-
-        for (int i = 1; i < exp.length(); i++) {
-            if (exp.charAt(i) == '[') {
-                exp = regex(exp, startIndex, i);
-            }
-            else if (exp.charAt(i) == ']') {
-                startIndex = i + 1;
-            }
-        }
-        exp = regex(exp, startIndex);
-
-        return exp;
-    }
-
-    @NotNull
-    private static String regex(@NotNull String exp, int start, int end) {
-        if (start < end) {
-            for (var operator : Operator.getPredefined()) {
-                final String endOfString = exp.substring(end);
-                final int startLength = exp.length();
-
-                exp = exp.substring(0, start) +
-                        exp.substring(start, end).replaceAll(operator.getRegex().pattern(),
-                                Character.toString(operator.getOperator())) +
-                        endOfString;
-
-                // Subtracts the difference
-                end -= Math.abs(startLength - exp.length());
-            }
-        }
-        return exp;
-    }
-
-    @NotNull
-    private static String regex(@NotNull String exp, int start) {
-        return regex(exp, start, exp.length());
-    }
 }

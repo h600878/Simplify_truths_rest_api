@@ -1,4 +1,4 @@
-package com.github.martials.classes;
+package com.github.martials.expressions;
 
 import org.jetbrains.annotations.NotNull;
 
