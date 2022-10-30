@@ -1,2 +1,4 @@
-package com.github.martials.classes;public class ExpressionUtilsTest {
+package com.github.martials.classes;
+
+public class ExpressionUtilsTest {
 }
