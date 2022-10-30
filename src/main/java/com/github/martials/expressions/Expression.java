@@ -112,16 +112,7 @@ public class Expression {
     }
 
     private boolean comparePositiveEquals(@NotNull Expression exp1, @NotNull Expression exp2) {
-        Operator operator = exp1.operator;
-        if (exp1.leading.contains("¬(")) {
-            if (exp1.operator == Operator.and) {
-                operator = Operator.or;
-            }
-            else {
-                operator = Operator.and;
-            }
-        }
-        return new Expression(exp1.left, operator, exp1.right, exp1.atomic).equals(exp2);
+        return new Expression(exp1.left, exp1.operator, exp1.right, exp1.atomic).equals(exp2);
     }
 
     /**
@@ -458,7 +449,7 @@ public class Expression {
                         final boolean leftRightEqRightLeft = left.right.equals(right.left);
 
                         // Ex: (A | B) | (A & B), remove (A & B)
-                        if (leftLeftEqRightLeft && leftRightEqRightRight || leftLeftEqRightRight && leftRightEqRightLeft) {
+                        if (inverseEqual(left, right) && (leftLeftEqRightLeft && leftRightEqRightRight || leftLeftEqRightRight && leftRightEqRightLeft)) {
 
                             if (left.operator == Operator.and) {
                                 left = right;
@@ -492,6 +483,10 @@ public class Expression {
         exp.operator = null;
         exp.right = null;
         exp.trailing = "";
+    }
+
+    private boolean inverseEqual(@NotNull Expression exp1, @NotNull Expression exp2) {
+        return exp1.isInverse() == exp2.isInverse();
     }
 
     /**

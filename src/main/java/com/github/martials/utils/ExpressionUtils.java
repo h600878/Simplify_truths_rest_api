@@ -8,6 +8,7 @@ import com.github.martials.expressions.Operator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.List;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -54,7 +55,7 @@ public abstract class ExpressionUtils {
             exp.appendLeading("¬");
         }
 
-        int oldStringLen = stringExp.length();
+        final int oldStringLen = stringExp.length();
         stringExp = removeOuterParentheses(stringExp);
 
         if (oldStringLen != stringExp.length()) {
@@ -89,30 +90,35 @@ public abstract class ExpressionUtils {
 
     private static boolean isAtomic(@NotNull String exp) {
 
-        final Pattern regex = Pattern.compile("^[a-zA-ZæøåÆØÅ0-9\\[\\]]$");
-        boolean atomic = regex.matcher(exp).matches();
-        int nrOfAtomics = 0;
-        boolean isSquareBracket = false;
-
-        for (int i = 0; atomic && i < exp.length(); i++) {
-            if (exp.charAt(i) == '[') {
-                isSquareBracket = true;
-            }
-            else if (exp.charAt(i) == ']') {
-                nrOfAtomics++;
-                isSquareBracket = false;
-                if (nrOfAtomics > 1) {
-                    atomic = false;
-                }
-            }
-            else if (regex.matcher(Character.toString(exp.charAt(i))).matches() && !isSquareBracket) {
-                nrOfAtomics++;
-                if (nrOfAtomics > 1) {
-                    atomic = false;
-                }
-            }
+        if (exp.length() <= 2) {
+            return true;
         }
-        return atomic;
+        return exp.charAt(0) == '[' || (exp.startsWith("¬[")) && exp.endsWith("]");
+
+//        final Pattern regex = Pattern.compile("^[a-zA-ZæøåÆØÅ0-9\\[\\]]$");
+//        boolean atomic = regex.matcher(exp).matches();
+//        int nrOfAtomics = 0;
+//        boolean isSquareBracket = false;
+//
+//        for (int i = 0; atomic && i < exp.length(); i++) {
+//            if (exp.charAt(i) == '[') {
+//                isSquareBracket = true;
+//            }
+//            else if (exp.charAt(i) == ']') {
+//                nrOfAtomics++;
+//                isSquareBracket = false;
+//                if (nrOfAtomics > 1) {
+//                    atomic = false;
+//                }
+//            }
+//            else if (regex.matcher(Character.toString(exp.charAt(i))).matches() && !isSquareBracket) {
+//                nrOfAtomics++;
+//                if (nrOfAtomics > 1) {
+//                    atomic = false;
+//                }
+//            }
+//        }
+//        return atomic;
     }
 
     /**
@@ -145,10 +151,12 @@ public abstract class ExpressionUtils {
                 i++;
             }
 
-            // Finds the matching Operator
-            Operator operator = Operator.getOperator(stringExp.charAt(i));
-            if (operator != null && operator != Operator.not) {
-                operators.add(new CenterOperator(operator, i));
+            if (i < stringExp.length()) {
+                // Finds the matching Operator
+                final Operator operator = Operator.getOperator(stringExp.charAt(i));
+                if (operator != null && operator != Operator.not) {
+                    operators.add(new CenterOperator(operator, i));
+                }
             }
         }
 
@@ -191,7 +199,7 @@ public abstract class ExpressionUtils {
         final Pattern regex = Pattern.compile("^[^a-zA-ZæøåÆØÅ0-9()⋁⋀➔¬\\[\\]]|]\\[|\\)\\[|\\)\\(|\\(\\)$");
         final Matcher matcher = regex.matcher(stringExp);
 
-        boolean isMatch = matcher.matches();
+        boolean isMatch = matcher.matches(); // FIXME matcher does not recognise () in string
         if (isMatch) {
             String match = matcher.group();
             return error(match.charAt(0), stringExp.indexOf(match), 0, illegalChar, atIndex);
@@ -219,11 +227,15 @@ public abstract class ExpressionUtils {
                     return error(charAtI, i, 20, illegalChar, atIndex);
                 }
                 if (charAtI == '[') {
-                    char top = brackets.pop();
-                    if (brackets.peek() == '[') {
-                        return error(charAtI, i, 21, illegalChar, atIndex);
+                    try {
+                        char top = brackets.pop();
+                        if (brackets.peek() == '[') {
+                            return error(charAtI, i, 21, illegalChar, atIndex);
+                        }
+                        brackets.push(top);
                     }
-                    brackets.push(top);
+                    catch (EmptyStackException ignored) {
+                    }
                     insideSquare = true;
                 }
                 brackets.push(charAtI);
@@ -304,7 +316,7 @@ public abstract class ExpressionUtils {
         if (stringExp.charAt(index) == '(') {
             is = true;
         }
-        while (is && (stringExp.charAt(index) == '(' || operators > 0)) {
+        while (is && index < stringExp.length() && (stringExp.charAt(index) == '(' || operators > 0)) {
             if (stringExp.charAt(index) == '(') {
                 operators++;
             }
