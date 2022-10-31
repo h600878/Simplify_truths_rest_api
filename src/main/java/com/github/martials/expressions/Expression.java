@@ -502,7 +502,7 @@ public class Expression {
             // Remove the entire left side
             if (operator == Operator.and && right.left.equalsAndOpposite(right.right)) {
                 if (!removeLeft) {
-                    this.left = right;
+                    this.left = this.right;
                 }
                 removeRight(this);
             }
@@ -510,14 +510,14 @@ public class Expression {
             else if ((operator == Operator.or && right.operator == Operator.and || operator == Operator.and &&
                     right.operator == Operator.or) && !right.isInverse() && (leftEqualsLeft || leftEqualsRight)) {
                 if (removeLeft) {
-                    this.left = right;
+                    this.left = this.right;
                 }
                 removeRight(this);
             }
             // If right side is always false and operator is "or", remove right side (Ex: B | (A & ¬A) <=> B)
             else if (operator == Operator.or && right.left.equalsAndOpposite(right.right) && right.operator == Operator.and) {
                 if (removeLeft) {
-                    this.left = right;
+                    this.left = this.right;
                 }
                 removeRight(this);
             }
@@ -552,7 +552,7 @@ public class Expression {
             index++;
         }
         if (index > 1) {
-            leading = leading.replaceAll("^¬$", "");
+            leading = leading.replace("¬", "");
             if (index % 2 == 1) {
                 leading = "¬" + leading;
             }
@@ -582,6 +582,10 @@ public class Expression {
         return getNumberOfAtomics(exp.left) + getNumberOfAtomics(exp.right);
     }
 
+    public int getNumberOfAtomics() {
+        return getNumberOfAtomics(this);
+    }
+
     /**
      * Takes in an expression with a true or false value for each side, then calculates the correct truth value
      *
@@ -593,13 +597,13 @@ public class Expression {
 
         boolean result = false;
 
-        if (operator.equals(Operator.and)) {
+        if (operator == Operator.and) {
             result = left && right;
         }
-        else if (operator.equals(Operator.or)) {
+        else if (operator == Operator.or) {
             result = left || right;
         }
-        else if (operator.equals(Operator.implication)) {
+        else if (operator == Operator.implication) {
             result = !left || right;
         }
 

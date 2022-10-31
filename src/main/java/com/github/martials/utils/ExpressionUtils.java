@@ -36,7 +36,7 @@ public abstract class ExpressionUtils {
         // Basis
         if (isAtomic(stringExp)) {
             while (stringExp.contains("¬")) {
-                stringExp = stringExp.replace("¬", "");
+                stringExp = stringExp.replaceFirst("¬", "");
                 exp.appendLeading("¬");
             }
             if (stringExp.contains("(") || stringExp.contains(")")) {
@@ -90,35 +90,34 @@ public abstract class ExpressionUtils {
 
     private static boolean isAtomic(@NotNull String exp) {
 
-        if (exp.length() <= 2) {
+        if (!exp.matches("^.*[⋁⋀➔].*$")) {
             return true;
         }
-        return exp.charAt(0) == '[' || (exp.startsWith("¬[")) && exp.endsWith("]");
 
-//        final Pattern regex = Pattern.compile("^[a-zA-ZæøåÆØÅ0-9\\[\\]]$");
-//        boolean atomic = regex.matcher(exp).matches();
-//        int nrOfAtomics = 0;
-//        boolean isSquareBracket = false;
-//
-//        for (int i = 0; atomic && i < exp.length(); i++) {
-//            if (exp.charAt(i) == '[') {
-//                isSquareBracket = true;
-//            }
-//            else if (exp.charAt(i) == ']') {
-//                nrOfAtomics++;
-//                isSquareBracket = false;
-//                if (nrOfAtomics > 1) {
-//                    atomic = false;
-//                }
-//            }
-//            else if (regex.matcher(Character.toString(exp.charAt(i))).matches() && !isSquareBracket) {
-//                nrOfAtomics++;
-//                if (nrOfAtomics > 1) {
-//                    atomic = false;
-//                }
-//            }
-//        }
-//        return atomic;
+        final Pattern regex = Pattern.compile("^[a-zA-ZæøåÆØÅ0-9\\[\\]]$");
+        boolean atomic = regex.matcher(exp).matches();
+        int nrOfAtomics = 0;
+        boolean isSquareBracket = false;
+
+        for (int i = 0; atomic && i < exp.length(); i++) {
+            if (exp.charAt(i) == '[') {
+                isSquareBracket = true;
+            }
+            else if (exp.charAt(i) == ']') {
+                nrOfAtomics++;
+                isSquareBracket = false;
+                if (nrOfAtomics > 1) {
+                    atomic = false;
+                }
+            }
+            else if (regex.matcher(Character.toString(exp.charAt(i))).matches() && !isSquareBracket) {
+                nrOfAtomics++;
+                if (nrOfAtomics > 1) {
+                    atomic = false;
+                }
+            }
+        }
+        return atomic;
     }
 
     /**
@@ -199,7 +198,7 @@ public abstract class ExpressionUtils {
         final Pattern regex = Pattern.compile("^[^a-zA-ZæøåÆØÅ0-9()⋁⋀➔¬\\[\\]]|]\\[|\\)\\[|\\)\\(|\\(\\)$");
         final Matcher matcher = regex.matcher(stringExp);
 
-        boolean isMatch = matcher.matches(); // FIXME matcher does not recognise () in string
+        boolean isMatch = matcher.find();
         if (isMatch) {
             String match = matcher.group();
             return error(match.charAt(0), stringExp.indexOf(match), 0, illegalChar, atIndex);

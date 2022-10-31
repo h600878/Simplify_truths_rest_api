@@ -21,6 +21,8 @@ public class ExpressionUtilsTest {
             Assertions.assertNotNull(simplify("A⋀B➔A", false));
             Assertions.assertNotNull(simplify("A⋀¬A", false));
             Assertions.assertNotNull(simplify("A⋀¬(A⋁B)", false));
+            Assertions.assertNotNull(ExpressionUtils.simplify("¬¬A", false));
+            Assertions.assertNotNull(ExpressionUtils.simplify("¬¬¬A", false));
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -42,15 +44,15 @@ public class ExpressionUtilsTest {
     @Test
     void isIllegalExpressionTest() {
 
-//        Assertions.assertNotEquals("", isLegalExpression(""));
-//        Assertions.assertNotEquals("", isLegalExpression("#"));
-//        Assertions.assertNotEquals("", isLegalExpression("⋁"));
-//        Assertions.assertNotEquals("", isLegalExpression("AB"));
-//        Assertions.assertNotEquals("", isLegalExpression("A⋁⋀"));
-//        Assertions.assertNotEquals("", isLegalExpression("A("));
-//        Assertions.assertNotEquals("", isLegalExpression("A["));
-//        Assertions.assertNotEquals("", isLegalExpression("[A"));
-//        Assertions.assertNotEquals("", isLegalExpression("A⋀(B]"));
+        Assertions.assertNotEquals("", isLegalExpression(""));
+        Assertions.assertNotEquals("", isLegalExpression("#"));
+        Assertions.assertNotEquals("", isLegalExpression("⋁"));
+        Assertions.assertNotEquals("", isLegalExpression("AB"));
+        Assertions.assertNotEquals("", isLegalExpression("A⋁⋀"));
+        Assertions.assertNotEquals("", isLegalExpression("A("));
+        Assertions.assertNotEquals("", isLegalExpression("A["));
+        Assertions.assertNotEquals("", isLegalExpression("[A"));
+        Assertions.assertNotEquals("", isLegalExpression("A⋀(B]"));
         Assertions.assertNotEquals("", isLegalExpression("A⋀()"));
         Assertions.assertNotEquals("", isLegalExpression("A¬B"));
         Assertions.assertNotEquals("", isLegalExpression("(A⋀B)(B⋀C)"));
