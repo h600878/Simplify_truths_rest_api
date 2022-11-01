@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 public class Expression {
 
@@ -83,14 +84,14 @@ public class Expression {
             }
 
             // If both are atomic
-            if (isAtomic() && otherExp.isAtomic() && atomic.equals(otherExp.atomic) && isInverse() == otherExp.isInverse()) {
+            if (isAtomic() && otherExp.isAtomic() && Objects.equals(atomic, otherExp.atomic) && isInverse() == otherExp.isInverse()) {
                 return true;
             }
             // If neither is atomic
-            else if (operator != null && !(isAtomic() || otherExp.isAtomic()) && operator.equals(otherExp.operator)) {
+            else if (operator != null && !(isAtomic() || otherExp.isAtomic()) && Objects.equals(operator, otherExp.operator)) {
 
-                return leading.equals(otherExp.leading) && (left.equals(otherExp.left) && right.equals(otherExp.right) ||
-                        left.equals(otherExp.right));
+                return Objects.equals(leading, otherExp.leading) && (Objects.equals(left, otherExp.left) &&
+                        Objects.equals(right, otherExp.right) || Objects.equals(left, otherExp.right));
             }
         }
         return false;
@@ -111,7 +112,7 @@ public class Expression {
         return false;
     }
 
-    private boolean comparePositiveEquals(@NotNull Expression exp1, @NotNull Expression exp2) {
+    private static boolean comparePositiveEquals(@NotNull Expression exp1, @NotNull Expression exp2) {
         return new Expression(exp1.left, exp1.operator, exp1.right, exp1.atomic).equals(exp2);
     }
 
@@ -149,7 +150,7 @@ public class Expression {
     /**
      * Calls all the laws then checks if the expression has been changed after
      */
-    public void laws() { // TODO translate using headers
+    public void laws() {
         boolean isEnglish = SimplifyTruthsRestApiApplication.lang == Language.english;
 
         String exp = toString();
