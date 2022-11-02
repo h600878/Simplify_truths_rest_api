@@ -56,7 +56,7 @@ public class Operator { // TODO remove values[] and only use regex?
 
     @Nullable
     public static Operator getOperator(char operator) {
-        for (var value : Operator.getPredefined()) {
+        for (var value : getPredefined()) {
             if (operator == value.operator) {
                 return value;
             }
@@ -64,10 +64,37 @@ public class Operator { // TODO remove values[] and only use regex?
         return null;
     }
 
-    public static boolean isOperator(char stringOp) {
+    @Nullable
+    public static Operator getOperator(@NotNull String operator) {
+        for (var value : getPredefined()) {
+            final boolean inArray = Arrays.asList(value.getValues()).contains(operator);
+            if (operator.equals(Character.toString(value.operator)) || inArray) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks if a single char is used as an operator
+     * @param op A single character
+     * @return True if the char is used to represent an operator
+     */
+    public static boolean isOperator(char op) {
         return Arrays.stream(getPredefined())
-                .anyMatch(operator -> stringOp == operator.operator ||
-                        Arrays.asList(operator.values).contains(Character.toString(stringOp)));
+                .anyMatch(operator -> op == operator.operator ||
+                        Arrays.asList(operator.values).contains(Character.toString(op)));
+    }
+
+    /**
+     * Checks if a string is used as an operator. Case sensitive, lowercase expected.
+     * @param op A string
+     * @return True if the string is used to represent an operator
+     */
+    public static boolean isOperator(@NotNull String op) {
+        return Arrays.stream(getPredefined())
+                .anyMatch(operator -> op.equals(Character.toString(operator.operator)) ||
+                        Arrays.asList(operator.values).contains(op));
     }
 
     @NotNull

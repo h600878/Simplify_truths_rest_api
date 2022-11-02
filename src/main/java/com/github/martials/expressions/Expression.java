@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
 public class Expression {
 
@@ -39,6 +38,8 @@ public class Expression {
      * @param atomic   The atomic value of the expression, if the expression is not atomic this is 'null'.
      */
     public Expression(@NotNull String leading, Expression left, Operator operator, Expression right, @NotNull String trailing, String atomic) {
+        assert operator != Operator.not : "Operator cannot be not.";
+
         this.leading = leading;
         this.left = left;
         this.operator = operator;
@@ -109,7 +110,9 @@ public class Expression {
         else if (StringUtils.numberOfChar(other.leading, '¬') % 2 == 1) {
             return comparePositiveEquals(other, this);
         }
-        return false;
+
+        return Objects.equals(left, other.left) && Objects.equals(right, other.right) && operator != other.operator &&
+                operator != Operator.implication && other.operator != Operator.implication;
     }
 
     private static boolean comparePositiveEquals(@NotNull Expression exp1, @NotNull Expression exp2) {
@@ -190,7 +193,7 @@ public class Expression {
             }
             // Neither is atomic
             else if (!(left.isAtomic() || right.isAtomic())) {
-                if (this.left.operator == right.operator && !left.isInverse() && !right.isInverse()) {
+                if (left.operator == right.operator && !left.isInverse() && !right.isInverse()) {
                     removeBothSides(left);
                     removeBothSides(right);
                 }
@@ -250,19 +253,21 @@ public class Expression {
         this.operator = operator == Operator.and ? Operator.or : Operator.and;
 
         if (operator != Operator.and) {
-            if (!leading.contains("(")) {
-                leading += "(";
-            }
-            if (!trailing.contains(")")) {
-                trailing += ")";
+            if (bothChildrenAtomic()) {
+                if (!leading.contains("(")) {
+                    leading += "(";
+                }
+                if (!trailing.contains(")")) {
+                    trailing += ")";
+                }
             }
         }
-        else { // exp2.operator == or
-            if (!right.leading.contains("(")) {
-                right.leading = "(";
+        else { // right.operator == or
+            if (!this.right.leading.contains("(")) {
+                this.right.leading = "(";
             }
-            if (!right.trailing.contains(")")) {
-                right.trailing = ")";
+            if (!this.right.trailing.contains(")")) {
+                this.right.trailing = ")";
             }
         }
     }
@@ -369,7 +374,7 @@ public class Expression {
      */
     public void commutativeProperty() {
 
-        if (left != null && left.isAtomic() && right.isAtomic() && left.atomic.compareTo(right.atomic) >= 0) {
+        if (left != null && bothChildrenAtomic() && left.atomic.compareTo(right.atomic) >= 0) {
             String exp = toString();
             if (!Objects.equals(left.atomic, right.atomic) || left.equalsAndOpposite(right) && !right.isInverse()) {
                 swap();
@@ -623,6 +628,10 @@ public class Expression {
         return this.atomic != null;
     }
 
+    public boolean bothChildrenAtomic() {
+        return left.isAtomic() && right.isAtomic();
+    }
+
     @NotNull
     public String getLeading() {
         return leading;
@@ -649,6 +658,7 @@ public class Expression {
     }
 
     public void setOperator(Operator operator) {
+        assert operator != Operator.not : "Operator cannot be not.";
         this.operator = operator;
     }
 
@@ -699,20 +709,20 @@ public class Expression {
     @NotNull
     @Override
     public String toString() {
-        if (this.isAtomic()) {
-            return this.leading + this.atomic;
+        if (isAtomic()) {
+            return leading + atomic;
         }
-        String s = this.leading;
-        if (this.left != null) {
-            s += this.left.toString();
+        StringBuilder s = new StringBuilder(leading);
+        if (left != null) {
+            s.append(left);
         }
-        if (this.operator != null) {
-            s += " " + this.operator + " ";
+        if (operator != null) {
+            s.append(" ").append(operator).append(" ");
         }
-        if (this.right != null) {
-            s += this.right.toString();
+        if (right != null) {
+            s.append(right);
         }
-        s += this.trailing;
-        return s;
+        s.append(trailing);
+        return s.toString();
     }
 }
