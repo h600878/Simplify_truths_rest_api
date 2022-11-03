@@ -135,6 +135,7 @@ public class Operator { // TODO remove values[] and only use regex?
     }
 
     @NotNull
+    @JsonIgnore
     public String[] getValues() {
         return values;
     }

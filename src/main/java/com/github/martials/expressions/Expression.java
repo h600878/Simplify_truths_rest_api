@@ -592,6 +592,7 @@ public class Expression {
         return getNumberOfAtomics(exp.left) + getNumberOfAtomics(exp.right);
     }
 
+    @JsonIgnore
     public int getNumberOfAtomics() {
         return getNumberOfAtomics(this);
     }
