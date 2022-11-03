@@ -6,6 +6,8 @@ import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,8 @@ public class Expression {
      */
     @NotNull
     private static List<OrderOperations> orderOfOperations = new ArrayList<>();
+
+    private final Logger log = LoggerFactory.getLogger(Expression.class);
 
     /**
      * @param leading  Leading content before the expression, like opening parentheses or 'not' operator

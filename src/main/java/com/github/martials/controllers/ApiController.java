@@ -9,6 +9,8 @@ import com.github.martials.utils.ExpressionUtils;
 import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +22,8 @@ import java.util.Objects;
 
 @RestController
 public class ApiController {
+
+    private final Logger log = LoggerFactory.getLogger(ApiController.class);
 
     /**
      * @param exp A truth expression
@@ -33,36 +37,48 @@ public class ApiController {
                            @RequestParam(required = false) @Nullable final String lang,
                            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
 
-        System.err.println("Language=" + header);
+        log.info("API call with the following parametres: exp=" + exp + ", lang=" + lang);
+        log.info("ACCEPT_LANGUAGE header=" + header);
 
         setLanguage(lang, header);
+        log.info("Language set to " + SimplifyTruthsRestApiApplication.lang);
 
         if (exp.equals("")) {
+            log.warn("Expression is empty, exiting...");
             return new Result(Status.NOT_FOUND, "", "", null, null);
         }
 
         final Expression expression;
 
-        System.err.println("Original=" + exp);
         String newExpression = exp.replace(" ", "");
+        if (!exp.equals(newExpression)) {
+            log.debug("Whitespace removed in expression: {}", newExpression);
+        }
 
         newExpression = StringUtils.replaceOperators(newExpression);
-        System.err.println("Converted=" + newExpression);
+        if (!exp.equals(newExpression)) {
+            log.debug("Expression changed to: {}", newExpression);
+        }
 
         final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
 
         if (Objects.equals(isLegal, "")) {
             expression = ExpressionUtils.simplify(newExpression, true);
+            log.debug("Expression simplified to: {}", expression);
         }
         else {
+            log.error("Expression is not legal: {}", isLegal);
             expression = null;
         }
 
-        return new Result(expression != null ? Status.OK : new Status(500, isLegal),
+        final Result result = new Result(expression != null ? Status.OK : new Status(500, isLegal),
                 exp,
                 expression != null ? expression.toString() : newExpression,
                 Expression.getOrderOfOperations(),
                 expression);
+
+        log.debug("Result sent: {}", result);
+        return result;
     }
 
     private void setLanguage(String language, @NotNull String header) {
@@ -78,7 +94,7 @@ public class ApiController {
                 System.err.println("Language was not found");
             }
         }
-        else if (header.substring(0, 2).equalsIgnoreCase("en")){
+        else if (header.substring(0, 2).equalsIgnoreCase("en")){ // TODO if first language is not recognised, check second
             SimplifyTruthsRestApiApplication.lang = Language.english;
         }
     }
