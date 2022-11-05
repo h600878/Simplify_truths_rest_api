@@ -13,7 +13,13 @@ public class OperatorTest {
 
     @Test
     void getOperator() {
-        Assertions.fail();
+        Assertions.assertEquals(Operator.and, Operator.getOperator("&"));
+        Assertions.assertEquals(Operator.and, Operator.getOperator('&'));
+
+        Assertions.assertEquals(Operator.or, Operator.getOperator('|'));
+
+        Assertions.assertEquals(Operator.implication, Operator.getOperator("->"));
+
     }
 
     @Test
@@ -22,11 +28,23 @@ public class OperatorTest {
         Assertions.assertTrue(Operator.isOperator("¬"));
         Assertions.assertTrue(Operator.isOperator('&'));
         Assertions.assertTrue(Operator.isOperator("&"));
-        // TODO
+
+        for (Operator ops : Operator.getPredefined()) {
+            for (String s : ops.getValues()) {
+                Assertions.assertTrue(Operator.isOperator(s));
+            }
+        }
+
+        Assertions.assertFalse(Operator.isOperator("£"));
+        Assertions.assertFalse(Operator.isOperator('T'));
     }
 
     @Test
     void testEquals() {
-        Assertions.fail();
+        Assertions.assertNotEquals(Operator.or, Operator.not);
+        Assertions.assertNotEquals(Operator.and, Operator.or);
+        Assertions.assertNotEquals(Operator.implication, Operator.and);
+
+        Assertions.assertEquals(Operator.or, Operator.or);
     }
 }
