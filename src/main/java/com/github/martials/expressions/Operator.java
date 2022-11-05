@@ -56,12 +56,7 @@ public class Operator { // TODO remove values[] and only use regex?
 
     @Nullable
     public static Operator getOperator(char operator) {
-        for (var value : getPredefined()) {
-            if (operator == value.operator) {
-                return value;
-            }
-        }
-        return null;
+        return getOperator(Character.toString(operator));
     }
 
     @Nullable
@@ -81,9 +76,7 @@ public class Operator { // TODO remove values[] and only use regex?
      * @return True if the char is used to represent an operator
      */
     public static boolean isOperator(char op) {
-        return Arrays.stream(getPredefined())
-                .anyMatch(operator -> op == operator.operator ||
-                        Arrays.asList(operator.values).contains(Character.toString(op)));
+        return isOperator(Character.toString(op));
     }
 
     /**
@@ -112,7 +105,7 @@ public class Operator { // TODO remove values[] and only use regex?
 
         if (operator != operator1.operator) return false;
         if (weight != operator1.weight) return false;
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+
         if (!Arrays.equals(values, operator1.values)) return false;
         return Objects.equals(regex, operator1.regex);
     }
