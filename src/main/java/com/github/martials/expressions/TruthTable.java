@@ -1,5 +1,6 @@
 package com.github.martials.expressions;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Sort;
 import com.github.martials.utils.ExpressionUtils;
@@ -13,9 +14,21 @@ public class TruthTable {
     private final Expression[] expressions;
     private final boolean[][] truthMatrix;
 
-    public TruthTable(@NotNull Expression[] expressions) {
+    public TruthTable(@NotNull Expression[] expressions, Hide hide, Sort sort) {
         this.expressions = expressions;
-        this.truthMatrix = create(Hide.none, Sort.defaultSort);
+        this.truthMatrix = create(hide, sort);
+    }
+
+    public TruthTable(@NotNull Expression[] expressions) {
+        this(expressions, Hide.none, Sort.defaultSort);
+    }
+
+    public TruthTable(@NotNull Expression[] expressions, Sort sort) {
+        this(expressions, Hide.none, sort);
+    }
+
+    public TruthTable(@NotNull Expression[] expressions, Hide hide) {
+        this(expressions, hide, Sort.defaultSort);
     }
 
     @NotNull
@@ -92,7 +105,7 @@ public class TruthTable {
 //                        truthMatrix.splice(row);
 //                    }
 //                    else {
-                        truthMatrix[row][column] = boolExp;
+                    truthMatrix[row][column] = boolExp;
 //
 //                        if (exp == expressions[expressions.length - 1] && (sort == Sort.trueFirst && boolExp ||
 //                                sort == Sort.falseFirst && !boolExp)) {
@@ -122,6 +135,7 @@ public class TruthTable {
         return -1;
     }
 
+    @JsonIgnore
     public Expression[] getExpressions() {
         return expressions;
     }
