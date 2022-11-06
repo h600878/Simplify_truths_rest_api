@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.http.HttpHeaders;
 
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -26,18 +27,20 @@ public class ApiController {
     private final Logger log = LoggerFactory.getLogger(ApiController.class);
 
     /**
-     * @param exp A truth expression
-     * @param lang Overrides the language in the header
-     * @param header The accept language section of the header, the prefered language will be used, unless english is set
+     * @param exp      A truth expression
+     * @param lang     Overrides the language in the header
+     * @param header   The accept language section of the header, the prefered language will be used, unless english is set
+     * @param simplify Wheter or not to simplify the given expression
      * @return The result of the simplified expression, or null if not valid
      */
     @NotNull
     @GetMapping("/api")
     public Result simplify(@RequestParam(defaultValue = "") @NotNull final String exp,
                            @RequestParam(required = false) @Nullable final String lang,
+                           @RequestParam(defaultValue = "true") final boolean simplify,
                            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
 
-        log.info("API call with the following parametres: exp=" + exp + ", lang=" + lang);
+        log.info("API call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
         log.info("ACCEPT_LANGUAGE header=" + header);
 
         setLanguage(lang, header);
@@ -51,19 +54,15 @@ public class ApiController {
         final Expression expression;
 
         String newExpression = exp.replace(" ", "");
-        if (!exp.equals(newExpression)) {
-            log.debug("Whitespace removed in expression: {}", newExpression);
-        }
+        log.debug("Whitespace removed in expression: {}", newExpression);
 
         newExpression = StringUtils.replaceOperators(newExpression);
-        if (!exp.equals(newExpression)) {
-            log.debug("Expression changed to: {}", newExpression);
-        }
+        log.debug("Expression changed to: {}", newExpression);
 
         final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
 
         if (Objects.equals(isLegal, "")) {
-            expression = ExpressionUtils.simplify(newExpression, true);
+            expression = ExpressionUtils.simplify(newExpression, simplify);
             log.debug("Expression simplified to: {}", expression);
         }
         else {
@@ -82,9 +81,12 @@ public class ApiController {
     }
 
     private void setLanguage(String language, @NotNull String header) {
+        final String headerLang = header.substring(0, 2);
+        final List<String> norLangs = List.of("nb", "no", "nn");
+
         if (language != null) {
             boolean isFound = false;
-            for (var lang : Language.values()) {
+            for (Language lang : Language.values()) {
                 if (language.equalsIgnoreCase(lang.getLang())) {
                     SimplifyTruthsRestApiApplication.lang = lang;
                     isFound = true;
@@ -94,8 +96,16 @@ public class ApiController {
                 System.err.println("Language was not found");
             }
         }
-        else if (header.substring(0, 2).equalsIgnoreCase("en")){ // TODO if first language is not recognised, check second
+        else if (headerLang.equalsIgnoreCase("en")) {
             SimplifyTruthsRestApiApplication.lang = Language.english;
+        }
+        else if (!norLangs.contains(headerLang.toLowerCase())) { // If neither "en", or the Norwegian languages
+            try {
+                setLanguage(null, header.split(",")[1]);
+            }
+            catch (IndexOutOfBoundsException ignored) {
+                log.warn("No language recognized in ACCEPT_LANGUAGE");
+            }
         }
     }
 
