@@ -1,6 +1,6 @@
 package com.github.martials.utils;
 
-import com.github.martials.Language;
+import com.github.martials.enums.Language;
 import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.expressions.CenterOperator;
 import com.github.martials.expressions.Expression;
@@ -86,6 +86,27 @@ public abstract class ExpressionUtils {
         exp.commutativeProperty(); // Sorts the expression
         exp.removeParenthesis();
         return exp;
+    }
+
+    public static int getNumberOfUniqueAtomics(@NotNull Expression[] expressions) {
+        int numberOfAtomics = 0;
+
+        for (int i = 0; i < expressions.length; i++) {
+            if (expressions[i].isAtomic()) {
+                boolean exists = false;
+                for (int j = i - 1; !exists && j >= 0; j--) {
+
+                    // If the opposite expression already exists
+                    if (expressions[j].isAtomic() && expressions[i].equalsAndOpposite(expressions[j])) {
+                        exists = true;
+                    }
+                }
+                if (!exists) {
+                    numberOfAtomics++;
+                }
+            }
+        }
+        return numberOfAtomics;
     }
 
     private static boolean isAtomic(@NotNull String exp) {

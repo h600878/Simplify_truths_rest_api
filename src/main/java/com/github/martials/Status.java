@@ -1,5 +1,6 @@
 package com.github.martials;
 
+import com.github.martials.enums.Language;
 import org.jetbrains.annotations.NotNull;
 
 public record Status(int code, @NotNull String message) {

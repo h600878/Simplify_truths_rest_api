@@ -1,7 +1,7 @@
 package com.github.martials.expressions;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.github.martials.Language;
+import com.github.martials.enums.Language;
 import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -576,25 +576,25 @@ public class Expression {
         }
     }
 
+    @JsonIgnore
+    public int getNumberOfAtomics() {
+        return getNumberOfAtomics(this);
+    }
+
     /**
      * Finds and returns the number of atomic values in the expression
      *
      * @param exp The Expression
      * @return {number} The number of atomic expressions in the expression
      */
-    public static int getNumberOfAtomics(@Nullable Expression exp) {
+    private int getNumberOfAtomics(@Nullable Expression exp) {
         if (exp == null) {
             return 0;
         }
         else if (exp.isAtomic()) {
             return 1;
         }
-        return getNumberOfAtomics(exp.left) + getNumberOfAtomics(exp.right);
-    }
-
-    @JsonIgnore
-    public int getNumberOfAtomics() {
-        return getNumberOfAtomics(this);
+        return exp.left.getNumberOfAtomics() + exp.right.getNumberOfAtomics();
     }
 
     /**
@@ -622,6 +622,45 @@ public class Expression {
             result = !result;
         }
         return result;
+    }
+
+    /**
+     *
+     * @return A set of all expressions in the tree structure
+     */
+    @NotNull
+    public Expression[] toSet() {
+        List<Expression> list = new ArrayList<>();
+        toSet(this, list);
+        return list.toArray(new Expression[0]);
+    }
+
+    /**
+     *
+     * @param exp The current object
+     * @param expressions An empty list of type Expression, where the objects will be stored
+     */
+    private void toSet(Expression exp, List<Expression> expressions) {
+        if (exp != null) {
+            toSet(exp.left, expressions);
+            toSet(exp.right, expressions);
+
+            boolean oppositeExists = false;
+
+            for (Expression ex : expressions) {
+                if (exp.equals(ex)) {
+                    return;
+                }
+                else if (exp.equalsAndOpposite(ex)) {
+                    oppositeExists = true;
+                }
+            }
+
+            if (!oppositeExists && StringUtils.numberOfChar(exp.leading, '¬') % 2 == 1) {
+                expressions.add(new Expression(exp.left, exp.operator, exp.right, exp.atomic));
+            }
+            expressions.add(exp);
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.github.martials;
+package com.github.martials.enums;
 
 public enum Language {
     norwegianBokmaal("nb"),

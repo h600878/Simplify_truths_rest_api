@@ -1,6 +1,6 @@
 package com.github.martials.controllers;
 
-import com.github.martials.Language;
+import com.github.martials.enums.Language;
 import com.github.martials.Result;
 import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.Status;
@@ -11,10 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import org.springframework.http.HttpHeaders;
 
@@ -34,7 +31,8 @@ public class ApiController {
      * @return The result of the simplified expression, or null if not valid
      */
     @NotNull
-    @GetMapping("/api")
+    @GetMapping("/simplify")
+    @CrossOrigin(origins = "http://localhost:8000")
     public Result simplify(@RequestParam(defaultValue = "") @NotNull final String exp,
                            @RequestParam(required = false) @Nullable final String lang,
                            @RequestParam(defaultValue = "true") final boolean simplify,
@@ -78,6 +76,28 @@ public class ApiController {
 
         log.debug("Result sent: {}", result);
         return result;
+    }
+
+    /**
+     *
+     * @return A matrix representation of a table with truth values
+     */
+    @NotNull
+    @GetMapping("/table")
+    @CrossOrigin(origins = "http://localhost:8000")
+    public Result table() {
+        return null;
+    }
+
+    /**
+     *
+     * @return A simplified expression and a matrix representation of a table with truth values
+     */
+    @NotNull
+    @GetMapping("/simplify/table")
+    @CrossOrigin(origins = "http://localhost:8000")
+    public Result simplifyAndTable() {
+        return null;
     }
 
     private void setLanguage(String language, @NotNull String header) {
