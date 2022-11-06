@@ -1,5 +1,6 @@
 package com.github.martials.controllers;
 
+import com.github.martials.ResultWithTable;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Language;
 import com.github.martials.Result;
@@ -7,6 +8,7 @@ import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.Status;
 import com.github.martials.enums.Sort;
 import com.github.martials.expressions.Expression;
+import com.github.martials.expressions.TruthTable;
 import com.github.martials.utils.ExpressionUtils;
 import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +42,7 @@ public class ApiController {
                            @RequestParam(defaultValue = "true") final boolean simplify,
                            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
 
-        log.info("API call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
+        log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
         log.info("ACCEPT_LANGUAGE header=" + header);
 
         setLanguage(lang, header);
@@ -51,15 +53,11 @@ public class ApiController {
             return new Result(Status.NOT_FOUND, "", "", null, null);
         }
 
-        final Expression expression;
-
-        String newExpression = exp.replace(" ", "");
-        log.debug("Whitespace removed in expression: {}", newExpression);
-
-        newExpression = StringUtils.replaceOperators(newExpression);
-        log.debug("Expression changed to: {}", newExpression);
+        String newExpression = replace(exp);
 
         final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
+
+        final Expression expression;
 
         if (Objects.equals(isLegal, "")) {
             expression = ExpressionUtils.simplify(newExpression, simplify);
@@ -86,8 +84,15 @@ public class ApiController {
     @NotNull
     @GetMapping("/table")
     @CrossOrigin(origins = "http://localhost:8000")
-    public Result table() {
-        return null;
+    public ResultWithTable table(
+            @RequestBody(required = false) @Nullable Expression exp,
+            @RequestParam(defaultValue = "defaultSort") Sort sort,
+            @RequestParam(defaultValue = "none") Hide hide,
+            @RequestParam(required = false) @Nullable String lang,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
+
+
+        return new ResultWithTable(Status.NOT_FOUND, "", "", null, null, null);
     }
 
     /**
@@ -96,17 +101,52 @@ public class ApiController {
     @NotNull
     @GetMapping("/simplify/table")
     @CrossOrigin(origins = "http://localhost:8000")
-    public Result simplifyAndTable(
+    public ResultWithTable simplifyAndTable(
             @RequestParam(defaultValue = "") @NotNull final String exp,
             @RequestParam(required = false) @Nullable String lang,
             @RequestParam(defaultValue = "true") boolean simplify,
-            @RequestParam(defaultValue = "Sort.defaultSort") Sort sort, // TODO test
-            @RequestParam(defaultValue = "Hide.none") Hide hide, // TODO test
+            @RequestParam(defaultValue = "defaultSort") Sort sort,
+            @RequestParam(defaultValue = "none") Hide hide,
             @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
 
+        log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify="
+                + simplify + ", sort=" + sort + ", hide=" + hide);
+        log.info("ACCEPT_LANGUAGE header=" + header);
 
+        setLanguage(lang, header);
+        log.info("Language set to " + SimplifyTruthsRestApiApplication.lang);
 
-        return new Result(Status.NOT_FOUND, exp, exp, null, null);
+        if (exp.equals("")) {
+            log.warn("Expression is empty, exiting...");
+            return new ResultWithTable(Status.NOT_FOUND, "", "", null, null, null);
+        }
+
+        final String newExpression = replace(exp);
+        final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
+
+        final Expression expression;
+        final TruthTable table;
+
+        if (Objects.equals(isLegal, "")) {
+            expression = ExpressionUtils.simplify(newExpression, simplify);
+            log.debug("Expression simplified to: {}", expression);
+            table = new TruthTable(expression.toSet());
+        }
+        else {
+            log.error("Expression is not legal: {}", isLegal);
+            expression = null;
+            table = null;
+        }
+
+        final ResultWithTable result = new ResultWithTable(expression != null ? Status.OK : new Status(500, isLegal),
+                exp,
+                expression != null ? expression.toString() : newExpression,
+                Expression.getOrderOfOperations(),
+                expression,
+                table);
+
+        log.debug("Result sent: {}", result);
+        return result;
     }
 
     private void setLanguage(String language, @NotNull String header) {
@@ -136,6 +176,16 @@ public class ApiController {
                 log.warn("No language recognized in ACCEPT_LANGUAGE");
             }
         }
+    }
+
+    @NotNull
+    private String replace(@NotNull String expression) {
+        String newExpression = expression.replace(" ", "");
+        log.debug("Whitespace removed in expression: {}", newExpression);
+
+        newExpression = StringUtils.replaceOperators(newExpression);
+        log.debug("Expression changed to: {}", newExpression);
+        return newExpression;
     }
 
 }
