@@ -51,13 +51,11 @@ public class TruthTable {
         int truthMatrixRowIndex = 0;
         int truthMatrixColIndex = 0;
 
-        // TODO Add a new first column with a boolean value, if it's true, show the row, if it's false skip it
-        // TODO So it would be possible to filter without rebuilding entire table
         // Creates a matrix with the body of the table, using the helper matrix helperMatrix to fill in the correct values.
         // The expressions that aren't atomic, uses the atomic values to see if they're truthy
-        final boolean[][] truthMatrix = new boolean[expressions.length][helperMatrix.length];
+        final boolean[][] truthMatrix = new boolean[helperMatrix[0].length][expressions.length];
 
-        for (int row = 0; helperMatrix.length > 0 && row < helperMatrix[0].length; row++) {
+        for (int row = 0; helperMatrix[0].length > 0 && row < helperMatrix[0].length; row++) {
 
             for (int column = 0; column < expressions.length && row < truthMatrix.length; column++) {
 
@@ -134,10 +132,16 @@ public class TruthTable {
 
     @Override
     public String toString() {
-        StringBuilder table = new StringBuilder();
+        StringBuilder table = new StringBuilder(Arrays.toString(expressions));
 
-        for (boolean[] b : truthMatrix) {
-            table.append(Arrays.toString(b)).append("\n");
+        table.append("\n\n");
+
+        for (boolean[] row : truthMatrix) {
+            table.append("|").append("\t");
+            for (boolean col : row) {
+                table.append(col).append("\t|\t");
+            }
+            table.append("\n");
         }
 
         return table.toString();

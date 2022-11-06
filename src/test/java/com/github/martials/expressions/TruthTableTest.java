@@ -1,5 +1,6 @@
 package com.github.martials.expressions;
 
+import com.github.martials.utils.ExpressionUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,6 @@ class TruthTableTest {
 
     @Test
     void testToString() {
-        Assertions.fail();
+        System.out.println(new TruthTable(ExpressionUtils.simplify("A ⋁ B ➔ ¬C", false).toSet()));
     }
 }

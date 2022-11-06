@@ -1,9 +1,11 @@
 package com.github.martials.controllers;
 
+import com.github.martials.enums.Hide;
 import com.github.martials.enums.Language;
 import com.github.martials.Result;
 import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.Status;
+import com.github.martials.enums.Sort;
 import com.github.martials.expressions.Expression;
 import com.github.martials.utils.ExpressionUtils;
 import com.github.martials.utils.StringUtils;
@@ -79,7 +81,6 @@ public class ApiController {
     }
 
     /**
-     *
      * @return A matrix representation of a table with truth values
      */
     @NotNull
@@ -90,14 +91,22 @@ public class ApiController {
     }
 
     /**
-     *
      * @return A simplified expression and a matrix representation of a table with truth values
      */
     @NotNull
     @GetMapping("/simplify/table")
     @CrossOrigin(origins = "http://localhost:8000")
-    public Result simplifyAndTable() {
-        return null;
+    public Result simplifyAndTable(
+            @RequestParam(defaultValue = "") @NotNull final String exp,
+            @RequestParam(required = false) @Nullable String lang,
+            @RequestParam(defaultValue = "true") boolean simplify,
+            @RequestParam(defaultValue = "Sort.defaultSort") Sort sort, // TODO test
+            @RequestParam(defaultValue = "Hide.none") Hide hide, // TODO test
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
+
+
+
+        return new Result(Status.NOT_FOUND, exp, exp, null, null);
     }
 
     private void setLanguage(String language, @NotNull String header) {
