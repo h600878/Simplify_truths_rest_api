@@ -1,11 +1,12 @@
 package com.github.martials.controllers;
 
-import com.github.martials.ResultWithTable;
-import com.github.martials.enums.Hide;
-import com.github.martials.enums.Language;
-import com.github.martials.Result;
+import com.github.martials.results.Result;
+import com.github.martials.results.ResultOnlyTable;
+import com.github.martials.results.ResultWithTable;
 import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.Status;
+import com.github.martials.enums.Hide;
+import com.github.martials.enums.Language;
 import com.github.martials.enums.Sort;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.TruthTable;
@@ -15,15 +16,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.*;
-
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
 
 @RestController
-public class ApiController {
+public class ApiController { // TODO test! table getMapping give different results
 
     private final Logger log = LoggerFactory.getLogger(ApiController.class);
 
@@ -36,37 +36,25 @@ public class ApiController {
      */
     @NotNull
     @GetMapping("/simplify")
-    @CrossOrigin(origins = "http://localhost:8000")
-    public Result simplify(@RequestParam(defaultValue = "") @NotNull final String exp,
+    @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
+    public Result simplify(@RequestParam(required = false) @Nullable final String exp,
                            @RequestParam(required = false) @Nullable final String lang,
                            @RequestParam(defaultValue = "true") final boolean simplify,
-                           @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
+                           @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
-        log.info("ACCEPT_LANGUAGE header=" + header);
 
-        setLanguage(lang, header);
-        log.info("Language set to " + SimplifyTruthsRestApiApplication.lang);
+        setAndLogLanguage(lang, header);
 
-        if (exp.equals("")) {
-            log.warn("Expression is empty, exiting...");
+        if (exp == null) {
+            log.warn("Parametre exp is empty, exiting...");
             return new Result(Status.NOT_FOUND, "", "", null, null);
         }
 
-        String newExpression = replace(exp);
-
+        final String newExpression = replace(exp);
         final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
 
-        final Expression expression;
-
-        if (Objects.equals(isLegal, "")) {
-            expression = ExpressionUtils.simplify(newExpression, simplify);
-            log.debug("Expression simplified to: {}", expression);
-        }
-        else {
-            log.error("Expression is not legal: {}", isLegal);
-            expression = null;
-        }
+        final Expression expression = simplifyIfLegal(simplify, newExpression, isLegal);
 
         final Result result = new Result(expression != null ? Status.OK : new Status(500, isLegal),
                 exp,
@@ -83,16 +71,30 @@ public class ApiController {
      */
     @NotNull
     @GetMapping("/table")
-    @CrossOrigin(origins = "http://localhost:8000")
-    public ResultWithTable table(
-            @RequestBody(required = false) @Nullable Expression exp,
-            @RequestParam(defaultValue = "defaultSort") Sort sort,
-            @RequestParam(defaultValue = "none") Hide hide,
-            @RequestParam(required = false) @Nullable String lang,
-            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
+    @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
+    public ResultOnlyTable table(
+            @RequestBody(required = false) @Nullable final Expression exp,
+            @RequestParam(defaultValue = "defaultSort") final Sort sort,
+            @RequestParam(defaultValue = "none") final Hide hide,
+            @RequestParam(required = false) @Nullable final String lang,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
+        log.info("GetMapping with the following parametres: exp={}, sort={}, hide={}, lang={}", exp, sort, hide, lang);
 
-        return new ResultWithTable(Status.NOT_FOUND, "", "", null, null, null);
+        setAndLogLanguage(lang, header);
+
+        if (exp == null) {
+            log.warn("Body is empty, exiting...");
+            return new ResultOnlyTable(Status.NOT_FOUND, "", null);
+        }
+
+        final TruthTable table = new TruthTable(exp.toSetArray());
+        log.debug("New table created: {}", table);
+
+        final ResultOnlyTable result = new ResultOnlyTable(Status.OK, exp.toString(), table);
+        log.debug("Result sent: {}", result);
+
+        return result;
     }
 
     /**
@@ -100,41 +102,37 @@ public class ApiController {
      */
     @NotNull
     @GetMapping("/simplify/table")
-    @CrossOrigin(origins = "http://localhost:8000")
+    @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
     public ResultWithTable simplifyAndTable(
-            @RequestParam(defaultValue = "") @NotNull final String exp,
-            @RequestParam(required = false) @Nullable String lang,
-            @RequestParam(defaultValue = "true") boolean simplify,
-            @RequestParam(defaultValue = "defaultSort") Sort sort,
-            @RequestParam(defaultValue = "none") Hide hide,
-            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
+            @RequestParam(required = false) @Nullable final String exp,
+            @RequestParam(required = false) @Nullable final String lang,
+            @RequestParam(defaultValue = "true") final boolean simplify,
+            @RequestParam(defaultValue = "defaultSort") final Sort sort,
+            @RequestParam(defaultValue = "none") final Hide hide,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
 
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify="
                 + simplify + ", sort=" + sort + ", hide=" + hide);
-        log.info("ACCEPT_LANGUAGE header=" + header);
 
-        setLanguage(lang, header);
-        log.info("Language set to " + SimplifyTruthsRestApiApplication.lang);
+        setAndLogLanguage(lang, header);
 
-        if (exp.equals("")) {
-            log.warn("Expression is empty, exiting...");
+        if (exp == null) {
+            log.warn("Parametre exp is empty, exiting...");
             return new ResultWithTable(Status.NOT_FOUND, "", "", null, null, null);
         }
 
         final String newExpression = replace(exp);
+
+
         final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
+        final Expression expression = simplifyIfLegal(simplify, newExpression, isLegal);
 
-        final Expression expression;
         final TruthTable table;
-
-        if (Objects.equals(isLegal, "")) {
-            expression = ExpressionUtils.simplify(newExpression, simplify);
-            log.debug("Expression simplified to: {}", expression);
-            table = new TruthTable(expression.toSet());
+        if (Objects.equals(isLegal, "") && expression != null) {
+            table = new TruthTable(expression.toSetArray());
+            log.debug("New table created: {}", table);
         }
         else {
-            log.error("Expression is not legal: {}", isLegal);
-            expression = null;
             table = null;
         }
 
@@ -147,6 +145,26 @@ public class ApiController {
 
         log.debug("Result sent: {}", result);
         return result;
+    }
+
+    @Nullable
+    private Expression simplifyIfLegal(boolean simplify, String newExpression, @NotNull String isLegal) {
+        final Expression expression;
+        if (isLegal.equals("")) {
+            expression = ExpressionUtils.simplify(newExpression, simplify);
+            log.debug("Expression simplified to: {}", expression);
+        }
+        else {
+            log.error("Expression is not legal: {}", isLegal);
+            expression = null;
+        }
+        return expression;
+    }
+
+    private void setAndLogLanguage(@Nullable String lang, @NotNull String header) {
+        log.info("ACCEPT_LANGUAGE header=" + header);
+        setLanguage(lang, header);
+        log.info("Language set to " + SimplifyTruthsRestApiApplication.lang);
     }
 
     private void setLanguage(String language, @NotNull String header) {
@@ -162,7 +180,7 @@ public class ApiController {
                 }
             }
             if (!isFound) {
-                System.err.println("Language was not found");
+                log.warn("Language was not found");
             }
         }
         else if (headerLang.equalsIgnoreCase("en")) {
