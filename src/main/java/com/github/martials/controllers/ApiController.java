@@ -126,15 +126,7 @@ public class ApiController { // TODO test! table getMapping give different resul
 
         final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
         final Expression expression = simplifyIfLegal(simplify, newExpression, isLegal);
-
-        final TruthTable table;
-        if (Objects.equals(isLegal, "") && expression != null) {
-            table = new TruthTable(expression.toSetArray());
-            log.debug("New table created: {}", table);
-        }
-        else {
-            table = null;
-        }
+        final TruthTable table = getTruthTableIfLegal(expression, isLegal);
 
         final ResultWithTable result = new ResultWithTable(expression != null ? Status.OK : new Status(500, isLegal),
                 exp,
@@ -159,6 +151,16 @@ public class ApiController { // TODO test! table getMapping give different resul
             expression = null;
         }
         return expression;
+    }
+
+    @Nullable
+    private TruthTable getTruthTableIfLegal(@Nullable Expression expression, @NotNull String isLegal) {
+        TruthTable table = null;
+        if (Objects.equals(isLegal, "") && expression != null) {
+            table = new TruthTable(expression.toSetArray());
+            log.debug("New table created: {}", table);
+        }
+        return table;
     }
 
     private void setAndLogLanguage(@Nullable String lang, @NotNull String header) {
