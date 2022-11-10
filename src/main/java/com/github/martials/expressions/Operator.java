@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
  */
 public class Operator { // TODO remove values[] and only use regex?
 
-    private final char operator;
-    private final int weight;
+    private char operator;
+    private int weight;
     private String[] values;
     private Pattern regex;
 
@@ -33,6 +33,10 @@ public class Operator { // TODO remove values[] and only use regex?
 
     public Operator(char operator, int weight) {
         this(operator, weight, null, "");
+    }
+
+    public Operator() {
+
     }
 
     static {
@@ -106,7 +110,6 @@ public class Operator { // TODO remove values[] and only use regex?
         if (operator != operator1.operator) return false;
         if (weight != operator1.weight) return false;
 
-        if (!Arrays.equals(values, operator1.values)) return false;
         return Objects.equals(regex, operator1.regex);
     }
 
@@ -123,8 +126,16 @@ public class Operator { // TODO remove values[] and only use regex?
         return operator;
     }
 
+    public void setOperator(char operator) {
+        this.operator = operator;
+    }
+
     public int getWeight() {
         return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
     }
 
     @NotNull
