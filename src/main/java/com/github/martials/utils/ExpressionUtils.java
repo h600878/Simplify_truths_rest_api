@@ -7,10 +7,7 @@ import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.Operator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.EmptyStackException;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -174,7 +171,7 @@ public abstract class ExpressionUtils {
             if (i < stringExp.length()) {
                 // Finds the matching Operator
                 final Operator operator = Operator.getOperator(stringExp.charAt(i));
-                if (operator != null && operator != Operator.not) {
+                if (operator != null && !Objects.equals(operator, Operator.not)) {
                     operators.add(new CenterOperator(operator, i));
                 }
             }
