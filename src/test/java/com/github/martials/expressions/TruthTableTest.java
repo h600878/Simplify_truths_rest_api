@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class TruthTableTest {
 
     @BeforeEach
@@ -25,6 +23,6 @@ class TruthTableTest {
 
     @Test
     void testToString() {
-        System.out.println(new TruthTable(ExpressionUtils.simplify("A ⋁ B ➔ ¬C", false).toSet()));
+        System.out.println(new TruthTable(ExpressionUtils.simplify("A ⋁ B ➔ ¬C", false).toSetArray()));
     }
 }
