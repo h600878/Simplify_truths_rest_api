@@ -1,5 +1,6 @@
-package com.github.martials;
+package com.github.martials.results;
 
+import com.github.martials.Status;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.OrderOperations;
 import com.github.martials.expressions.TruthTable;
