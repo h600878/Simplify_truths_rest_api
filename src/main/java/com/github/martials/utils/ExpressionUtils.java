@@ -34,6 +34,11 @@ public class ExpressionUtils {
         this.simplify = simplify;
     }
 
+    public Expression simplify(String expression) {
+        setExpression(expression);
+        return simplify();
+    }
+
     @NotNull
     public Expression simplify() {
         assert expression != null : "Expression cannot be null";

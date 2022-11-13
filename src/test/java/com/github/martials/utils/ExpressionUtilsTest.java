@@ -18,20 +18,13 @@ public class ExpressionUtilsTest {
 
         try {
             eu.setSimplify(false);
-            eu.setExpression("A⋀B");
-            Assertions.assertNotNull(eu.simplify());
-            eu.setExpression("A⋁¬A");
-            Assertions.assertNotNull(eu.simplify());
-            eu.setExpression("A⋀B➔A");
-            Assertions.assertNotNull(eu.simplify());
-            eu.setExpression("A⋀¬A");
-            Assertions.assertNotNull(eu.simplify());
-            eu.setExpression("A⋀¬(A⋁B)");
-            Assertions.assertNotNull(eu.simplify());
-            eu.setExpression("¬¬A");
-            Assertions.assertNotNull(eu.simplify());
-            eu.setExpression("¬¬¬A");
-            Assertions.assertNotNull(eu.simplify());
+            Assertions.assertNotNull(eu.simplify("A⋀B"));
+            Assertions.assertNotNull(eu.simplify("A⋁¬A"));
+            Assertions.assertNotNull(eu.simplify("A⋀B➔A"));
+            Assertions.assertNotNull(eu.simplify("A⋀¬A"));
+            Assertions.assertNotNull(eu.simplify("A⋀¬(A⋁B)"));
+            Assertions.assertNotNull(eu.simplify("¬¬A"));
+            Assertions.assertNotNull(eu.simplify("¬¬¬A"));
         }
         catch (Exception e) {
             e.printStackTrace();
