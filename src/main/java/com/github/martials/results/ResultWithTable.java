@@ -9,7 +9,29 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public record ResultWithTable(@NotNull Status status, @NotNull String before, @NotNull String after,
-                              @Nullable List<OrderOperations> orderOperations, @Nullable Expression expression,
-                              @Nullable String[] header, @Nullable TruthTable table) {
+public class ResultWithTable extends Result {
+
+    @Nullable
+    private final TruthTable table;
+    @Nullable
+    private final String[] header;
+
+    public ResultWithTable(@NotNull Status status, @NotNull String before, @NotNull String after,
+                           @Nullable List<OrderOperations> orderOperations, @Nullable Expression expression,
+                           @Nullable String[] header, @Nullable TruthTable table) {
+        super(status, before, after, orderOperations, expression);
+        this.table = table;
+        this.header = header;
+    }
+
+    @Nullable
+    public TruthTable getTable() {
+        return table;
+    }
+
+    @Nullable
+    public String[] getHeader() {
+        return header;
+    }
+
 }

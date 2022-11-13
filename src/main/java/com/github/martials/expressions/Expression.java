@@ -752,6 +752,10 @@ public class Expression {
         Expression.orderOfOperations = orderOfOperations;
     }
 
+    public static void resetOrderOfOperations() {
+        setOrderOfOperations(new ArrayList<>());
+    }
+
     /**
      * Returns a string representation of the expression
      * example: A & B | (¬C -> D)

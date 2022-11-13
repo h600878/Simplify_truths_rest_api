@@ -1,5 +1,6 @@
 package com.github.martials.controllers;
 
+import com.github.martials.results.EmptyResult;
 import com.github.martials.results.Result;
 import com.github.martials.results.ResultOnlyTable;
 import com.github.martials.results.ResultWithTable;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-public class ApiController {
+public class ApiController { // TODO make thread-safe
 
     private final Logger log = LoggerFactory.getLogger(ApiController.class);
 
@@ -38,10 +39,10 @@ public class ApiController {
     @NotNull
     @GetMapping("/simplify")
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public Result simplify(@RequestParam(required = false) @Nullable final String exp,
-                           @RequestParam(required = false) @Nullable final String lang,
-                           @RequestParam(defaultValue = "true") final boolean simplify,
-                           @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp,
+                                @RequestParam(required = false) @Nullable final String lang,
+                                @RequestParam(defaultValue = "true") final boolean simplify,
+                                @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
 
@@ -49,7 +50,7 @@ public class ApiController {
 
         if (exp == null) {
             log.warn("Parametre exp is empty, exiting...");
-            return new Result(Status.NOT_FOUND, "", "", null, null);
+            return new EmptyResult(Status.NOT_FOUND);
         }
 
         final String newExpression = replace(exp);
@@ -63,6 +64,8 @@ public class ApiController {
                 Expression.getOrderOfOperations(),
                 expression);
 
+        Expression.resetOrderOfOperations();
+
         log.debug("Result sent: {}", result);
         return result;
     }
@@ -73,7 +76,7 @@ public class ApiController {
     @NotNull
     @GetMapping("/table") // FIXME test! Gives wrong results
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public ResultOnlyTable table(
+    public EmptyResult table(
             @RequestBody(required = false) @Nullable final Expression exp,
             @RequestParam(defaultValue = "defaultSort") final Sort sort,
             @RequestParam(defaultValue = "none") final Hide hide,
@@ -86,7 +89,7 @@ public class ApiController {
 
         if (exp == null) {
             log.warn("Body is empty, exiting...");
-            return new ResultOnlyTable(Status.NOT_FOUND, "", null);
+            return new EmptyResult(Status.NOT_FOUND);
         }
 
         final TruthTable table = new TruthTable(exp.toSetArray());
@@ -104,7 +107,7 @@ public class ApiController {
     @NotNull
     @GetMapping("/simplify/table")
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public ResultWithTable simplifyAndTable(
+    public EmptyResult simplifyAndTable(
             @RequestParam(required = false) @Nullable final String exp,
             @RequestParam(required = false) @Nullable final String lang,
             @RequestParam(defaultValue = "true") final boolean simplify,
@@ -119,13 +122,12 @@ public class ApiController {
 
         if (exp == null) {
             log.warn("Parametre exp is empty, exiting...");
-            return new ResultWithTable(Status.NOT_FOUND, "", "", null, null, null, null);
+            return new EmptyResult(Status.NOT_FOUND);
         }
 
         final String newExpression = replace(exp);
-
-
         final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
+
         final Expression expression = simplifyIfLegal(simplify, newExpression, isLegal);
         final TruthTable table = getTruthTableIfLegal(expression, isLegal);
 
@@ -136,6 +138,8 @@ public class ApiController {
                 expression,
                 mapToStrings(table),
                 table);
+
+        Expression.resetOrderOfOperations();
 
         log.debug("Result sent: {}", result);
         return result;
