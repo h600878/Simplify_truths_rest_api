@@ -23,6 +23,6 @@ class TruthTableTest {
 
     @Test
     void testToString() {
-        System.out.println(new TruthTable(ExpressionUtils.simplify("A ⋁ B ➔ ¬C", false).toSetArray()));
+        System.out.println(new TruthTable(new ExpressionUtils("A ⋁ B ➔ ¬C", false).simplify().toSetArray()));
     }
 }

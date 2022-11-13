@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+
 public class ExpressionTest {
 
     private Expression
@@ -19,24 +21,24 @@ public class ExpressionTest {
 
     @BeforeEach
     void setup() {
-        alwaysTrue1 = ExpressionUtils.simplify("A⋁¬A", false);
-        alwaysTrue2 = ExpressionUtils.simplify("A⋀B➔A", false);
-        alwaysFalse1 = ExpressionUtils.simplify("A⋀¬A", false);
-        alwaysFalse2 = ExpressionUtils.simplify("A⋀¬(A⋁B)", false);
-        doubleInverse = ExpressionUtils.simplify("¬¬A", false);
-        tripleInverse = ExpressionUtils.simplify("¬¬¬A", false);
-        quadInverse = ExpressionUtils.simplify("¬¬¬¬A", false);
-        fiveInverse = ExpressionUtils.simplify("¬¬¬¬¬A", false);
-        aAndA = ExpressionUtils.simplify("A⋀A", false);
-        aOrA = ExpressionUtils.simplify("A⋁A", false);
-        aAndAOrA = ExpressionUtils.simplify("A⋀A⋁A", false);
-        aImpliesNotA = ExpressionUtils.simplify("A➔¬A", false);
-        notAandNotB = ExpressionUtils.simplify("¬A⋀¬B", false);
-        notAorNotB = ExpressionUtils.simplify("¬A⋁¬B", false);
-        parenthesesAandB = ExpressionUtils.simplify("(A⋀B)", false);
-        aAndBorBandC = ExpressionUtils.simplify("A⋀B⋁B⋀C", false);
-        aOrBandBorC = ExpressionUtils.simplify("(A⋁B)⋀(B⋁C)", false);
-        wrongOrder = ExpressionUtils.simplify("B⋁A", false);
+        alwaysTrue1 = new ExpressionUtils("A⋁¬A", false).simplify();
+        alwaysTrue2 = new ExpressionUtils("A⋀B➔A", false).simplify();
+        alwaysFalse1 = new ExpressionUtils("A⋀¬A", false).simplify();
+        alwaysFalse2 = new ExpressionUtils("A⋀¬(A⋁B)", false).simplify();
+        doubleInverse = new ExpressionUtils("¬¬A", false).simplify();
+        tripleInverse = new ExpressionUtils("¬¬¬A", false).simplify();
+        quadInverse = new ExpressionUtils("¬¬¬¬A", false).simplify();
+        fiveInverse = new ExpressionUtils("¬¬¬¬¬A", false).simplify();
+        aAndA = new ExpressionUtils("A⋀A", false).simplify();
+        aOrA = new ExpressionUtils("A⋁A", false).simplify();
+        aAndAOrA = new ExpressionUtils("A⋀A⋁A", false).simplify();
+        aImpliesNotA = new ExpressionUtils("A➔¬A", false).simplify();
+        notAandNotB = new ExpressionUtils("¬A⋀¬B", false).simplify();
+        notAorNotB = new ExpressionUtils("¬A⋁¬B", false).simplify();
+        parenthesesAandB = new ExpressionUtils("(A⋀B)", false).simplify();
+        aAndBorBandC = new ExpressionUtils("A⋀B⋁B⋀C", false).simplify();
+        aOrBandBorC = new ExpressionUtils("(A⋁B)⋀(B⋁C)", false).simplify();
+        wrongOrder = new ExpressionUtils("B⋁A", false).simplify();
     }
 
     @Test
@@ -59,14 +61,14 @@ public class ExpressionTest {
 
     @Test
     void removeParenthesis() {
-        parenthesesAandB.removeParenthesis();
+        parenthesesAandB.removeParenthesis(new ArrayList<>());
         Assertions.assertEquals("A ⋀ B", parenthesesAandB.toString());
 
         notAandNotB.deMorgansLaws();
-        notAandNotB.removeParenthesis();
+        notAandNotB.removeParenthesis(new ArrayList<>());
         Assertions.assertEquals("¬(A ⋁ B)", notAandNotB.toString());
         notAorNotB.deMorgansLaws();
-        notAorNotB.removeParenthesis();
+        notAorNotB.removeParenthesis(new ArrayList<>());
         Assertions.assertEquals("¬(A ⋀ B)", notAorNotB.toString());
     }
 
@@ -111,7 +113,7 @@ public class ExpressionTest {
 
     @Test
     void commutativeProperty() {
-        wrongOrder.commutativeProperty();
+        wrongOrder.commutativeProperty(new ArrayList<>());
         Assertions.assertEquals("A ⋁ B", wrongOrder.toString());
     }
 

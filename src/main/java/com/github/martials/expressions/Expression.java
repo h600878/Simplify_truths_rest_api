@@ -24,13 +24,6 @@ public class Expression {
     private String trailing;
     private String atomic;
 
-    /**
-     * Stores the before and after of each law
-     * Example: [index] => ¬(A & B);¬A | ¬B;De Morgan's Laws
-     */
-    @NotNull
-    private static List<OrderOperations> orderOfOperations = new ArrayList<>();
-
     private final Logger log = LoggerFactory.getLogger(Expression.class);
 
     /**
@@ -145,10 +138,10 @@ public class Expression {
      * @return {string} If the expression is changed, return the new toString() value of it, otherwise return the old
      */
     @NotNull
-    private String isChangedThenAdd(@NotNull String exp, @NotNull String law) {
+    public String isChangedThenAdd(@NotNull String exp, @NotNull String law, List<OrderOperations> operations) {
         if (!exp.equals(toString())) {
             OrderOperations op = new OrderOperations(exp, toString(), law);
-            Expression.orderOfOperations.add(op);
+            operations.add(op);
             exp = toString();
         }
         return exp;
@@ -157,28 +150,28 @@ public class Expression {
     /**
      * Calls all the laws then checks if the expression has been changed after
      */
-    public void laws() {
+    public void laws(List<OrderOperations> operations) {
         boolean isEnglish = SimplifyTruthsRestApiApplication.lang == Language.english;
 
         String exp = toString();
         eliminationOfImplication();
-        exp = isChangedThenAdd(exp, isEnglish ? "Elimination of implication" : "Eliminering av implikasjon");
+        exp = isChangedThenAdd(exp, isEnglish ? "Elimination of implication" : "Eliminering av implikasjon", operations);
         doubleNegation();
-        exp = isChangedThenAdd(exp, isEnglish ? "Double negation" : "Dobbel negasjon");
+        exp = isChangedThenAdd(exp, isEnglish ? "Double negation" : "Dobbel negasjon", operations);
         deMorgansLaws();
-        exp = isChangedThenAdd(exp, isEnglish ? "De Morgan's Laws" : "De Morgans lover");
+        exp = isChangedThenAdd(exp, isEnglish ? "De Morgan's Laws" : "De Morgans lover", operations);
         absorptionLaw();
-        exp = isChangedThenAdd(exp, isEnglish ? "Absorption law" : "Absorpsjons loven");
+        exp = isChangedThenAdd(exp, isEnglish ? "Absorption law" : "Absorpsjons loven", operations);
         associativeProperty();
-        exp = isChangedThenAdd(exp, isEnglish ? "Associative property" : "Assosisative egenskaper");
+        exp = isChangedThenAdd(exp, isEnglish ? "Associative property" : "Assosisative egenskaper", operations);
         distributiveProperty();
-        isChangedThenAdd(exp, isEnglish ? "Distributivity" : "Distributivitet");
+        isChangedThenAdd(exp, isEnglish ? "Distributivity" : "Distributivitet", operations);
     }
 
     /**
      * Removes unnecessary parentheses
      */
-    public void removeParenthesis() {
+    public void removeParenthesis(List<OrderOperations> operations) {
 
         if (left != null && right != null) {
             final String exp = toString();
@@ -208,7 +201,7 @@ public class Expression {
                     removeBothSides(right);
                 }
             }
-            isChangedThenAdd(exp, "Removal of parentheses");
+            isChangedThenAdd(exp, "Removal of parentheses", operations);
         }
     }
 
@@ -387,13 +380,13 @@ public class Expression {
      *
      * @link <a href="https://en.wikipedia.org/wiki/Commutative_property">Wikipedia</a>
      */
-    public void commutativeProperty() {
+    public void commutativeProperty(List<OrderOperations> operations) {
 
         if (left != null && bothChildrenAtomic() && left.atomic.compareTo(right.atomic) >= 0) {
             String exp = toString();
             if (!Objects.equals(left.atomic, right.atomic) || left.equalsAndOpposite(right) && !right.isInverse()) {
                 swap();
-                isChangedThenAdd(exp, "Commutative");
+                isChangedThenAdd(exp, "Commutative", operations);
             }
         }
     }
@@ -741,19 +734,6 @@ public class Expression {
 
     public void setAtomic(String atomic) {
         this.atomic = atomic;
-    }
-
-    @NotNull
-    public static List<OrderOperations> getOrderOfOperations() {
-        return orderOfOperations;
-    }
-
-    public static void setOrderOfOperations(@NotNull List<OrderOperations> orderOfOperations) {
-        Expression.orderOfOperations = orderOfOperations;
-    }
-
-    public static void resetOrderOfOperations() {
-        setOrderOfOperations(new ArrayList<>());
     }
 
     /**

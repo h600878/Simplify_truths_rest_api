@@ -1,9 +1,5 @@
 package com.github.martials.controllers;
 
-import com.github.martials.results.EmptyResult;
-import com.github.martials.results.Result;
-import com.github.martials.results.ResultOnlyTable;
-import com.github.martials.results.ResultWithTable;
 import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.Status;
 import com.github.martials.enums.Hide;
@@ -11,6 +7,10 @@ import com.github.martials.enums.Language;
 import com.github.martials.enums.Sort;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.TruthTable;
+import com.github.martials.results.EmptyResult;
+import com.github.martials.results.Result;
+import com.github.martials.results.ResultOnlyTable;
+import com.github.martials.results.ResultWithTable;
 import com.github.martials.utils.ExpressionUtils;
 import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,10 +39,7 @@ public class ApiController { // TODO make thread-safe
     @NotNull
     @GetMapping("/simplify")
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp,
-                                @RequestParam(required = false) @Nullable final String lang,
-                                @RequestParam(defaultValue = "true") final boolean simplify,
-                                @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp, @RequestParam(required = false) @Nullable final String lang, @RequestParam(defaultValue = "true") final boolean simplify, @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
 
@@ -54,17 +51,18 @@ public class ApiController { // TODO make thread-safe
         }
 
         final String newExpression = replace(exp);
-        final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
+        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify);
+        final String isLegal = eu.isLegalExpression();
 
-        final Expression expression = simplifyIfLegal(simplify, newExpression, isLegal);
+        final Expression expression = simplifyIfLegal(eu, isLegal);
 
-        final Result result = new Result(expression != null ? Status.OK : new Status(500, isLegal),
-                exp,
-                expression != null ? expression.toString() : newExpression,
-                Expression.getOrderOfOperations(),
-                expression);
-
-        Expression.resetOrderOfOperations();
+        final EmptyResult result;
+        if (expression == null) {
+            result = new EmptyResult(new Status(500, isLegal));
+        }
+        else {
+            result = new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression);
+        }
 
         log.debug("Result sent: {}", result);
         return result;
@@ -76,12 +74,7 @@ public class ApiController { // TODO make thread-safe
     @NotNull
     @GetMapping("/table") // FIXME test! Gives wrong results
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public EmptyResult table(
-            @RequestBody(required = false) @Nullable final Expression exp,
-            @RequestParam(defaultValue = "defaultSort") final Sort sort,
-            @RequestParam(defaultValue = "none") final Hide hide,
-            @RequestParam(required = false) @Nullable final String lang,
-            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp, @RequestParam(defaultValue = "defaultSort") final Sort sort, @RequestParam(defaultValue = "none") final Hide hide, @RequestParam(required = false) @Nullable final String lang, @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("GetMapping with the following parametres: exp={}, sort={}, hide={}, lang={}", exp, sort, hide, lang);
 
@@ -107,16 +100,10 @@ public class ApiController { // TODO make thread-safe
     @NotNull
     @GetMapping("/simplify/table")
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public EmptyResult simplifyAndTable(
-            @RequestParam(required = false) @Nullable final String exp,
-            @RequestParam(required = false) @Nullable final String lang,
-            @RequestParam(defaultValue = "true") final boolean simplify,
-            @RequestParam(defaultValue = "defaultSort") final Sort sort,
-            @RequestParam(defaultValue = "none") final Hide hide,
-            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
+    public EmptyResult simplifyAndTable(@RequestParam(required = false) @Nullable final String exp, @RequestParam(required = false) @Nullable final String lang, @RequestParam(defaultValue = "true") final boolean simplify, @RequestParam(defaultValue = "defaultSort") final Sort sort, @RequestParam(defaultValue = "none") final Hide hide, @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
 
-        log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify="
-                + simplify + ", sort=" + sort + ", hide=" + hide);
+        log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
+                ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide);
 
         setAndLogLanguage(lang, header);
 
@@ -126,20 +113,20 @@ public class ApiController { // TODO make thread-safe
         }
 
         final String newExpression = replace(exp);
-        final String isLegal = ExpressionUtils.isLegalExpression(newExpression);
+        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify);
+        final String isLegal = eu.isLegalExpression();
 
-        final Expression expression = simplifyIfLegal(simplify, newExpression, isLegal);
+        final Expression expression = simplifyIfLegal(eu, isLegal);
         final TruthTable table = getTruthTableIfLegal(expression, isLegal);
 
-        final ResultWithTable result = new ResultWithTable(expression != null ? Status.OK : new Status(500, isLegal),
-                exp,
-                expression != null ? expression.toString() : newExpression,
-                Expression.getOrderOfOperations(),
-                expression,
-                mapToStrings(table),
-                table);
-
-        Expression.resetOrderOfOperations();
+        final EmptyResult result;
+        if (expression == null) {
+            result = new EmptyResult(new Status(500, isLegal));
+        }
+        else {
+            result = new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),
+                    expression, mapToStrings(table), table);
+        }
 
         log.debug("Result sent: {}", result);
         return result;
@@ -149,16 +136,14 @@ public class ApiController { // TODO make thread-safe
         if (table == null) {
             return null;
         }
-        return Arrays.stream(table.getExpressions())
-                .map(Expression::toString)
-                .toArray(String[]::new);
+        return Arrays.stream(table.getExpressions()).map(Expression::toString).toArray(String[]::new);
     }
 
     @Nullable
-    private Expression simplifyIfLegal(boolean simplify, String newExpression, @NotNull String isLegal) {
+    private Expression simplifyIfLegal(ExpressionUtils eu, @NotNull String isLegal) {
         final Expression expression;
         if (isLegal.equals("")) {
-            expression = ExpressionUtils.simplify(newExpression, simplify);
+            expression = eu.simplify();
             log.debug("Expression simplified to: {}", expression);
         }
         else {

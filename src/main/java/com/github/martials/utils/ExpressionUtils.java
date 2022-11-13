@@ -5,19 +5,40 @@ import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.expressions.CenterOperator;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.Operator;
+import com.github.martials.expressions.OrderOperations;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class ExpressionUtils {
+public class ExpressionUtils {
 
     @NotNull
-    public static Expression simplify(@NotNull String stringExp, boolean simplify) {
-        Expression.setOrderOfOperations(new ArrayList<>()); // Resets the orderOfOperations
+    private final List<OrderOperations> operations;
+    private String expression;
+    private boolean simplify;
 
-        final Expression exp = simplifyRec(stringExp, simplify);
+    public ExpressionUtils() {
+        this(null, true);
+    }
+
+    public ExpressionUtils(String expression) {
+        this(expression, true);
+    }
+
+    public ExpressionUtils(@Nullable String expression, boolean simplify) {
+        operations = new ArrayList<>();
+        this.expression = expression;
+        this.simplify = simplify;
+    }
+
+    @NotNull
+    public Expression simplify() {
+        assert expression != null : "Expression cannot be null";
+
+        final Expression exp = simplifyRec(expression, simplify);
         if (!exp.getLeading().contains("¬")) {
             exp.setLeading("");
             exp.setTrailing("");
@@ -26,7 +47,7 @@ public abstract class ExpressionUtils {
     }
 
     @NotNull
-    private static Expression simplifyRec(@NotNull String stringExp, boolean simplify) {
+    private Expression simplifyRec(@NotNull String stringExp, boolean simplify) {
 
         Expression exp = new Expression();
 
@@ -67,7 +88,7 @@ public abstract class ExpressionUtils {
         exp.setRight(simplifyRec(stringExp.substring(center.index() + 1), simplify)); // Right
 
         if (simplify) {
-            exp.laws();
+            exp.laws(operations);
         }
         // Moves expressions up the tree structure
         if (exp.getRight() == null) {
@@ -80,8 +101,8 @@ public abstract class ExpressionUtils {
             exp.setRight(exp.getRight().getLeft());
         }
 
-        exp.commutativeProperty(); // Sorts the expression
-        exp.removeParenthesis();
+        exp.commutativeProperty(operations); // Sorts the expression
+        exp.removeParenthesis(operations);
         return exp;
     }
 
@@ -106,7 +127,7 @@ public abstract class ExpressionUtils {
         return numberOfAtomics;
     }
 
-    private static boolean isAtomic(@NotNull String exp) {
+    private boolean isAtomic(@NotNull String exp) {
 
         if (!exp.matches("^.*[⋁⋀➔].*$")) {
             return true;
@@ -146,7 +167,7 @@ public abstract class ExpressionUtils {
      * @return The index position of the center operator based on the weight of the operators
      */
     @NotNull
-    private static CenterOperator getCenterOperatorIndex(@NotNull String stringExp) {
+    private CenterOperator getCenterOperatorIndex(@NotNull String stringExp) {
 
         stringExp = removeOuterParentheses(stringExp);
 
@@ -201,10 +222,10 @@ public abstract class ExpressionUtils {
      * Not operator prior to another different operator.
      * The parentheses do not match.
      *
-     * @param stringExp A string in the style of a truth expression
      */
     @NotNull
-    public static String isLegalExpression(@NotNull String stringExp) {
+    public String isLegalExpression() {
+        assert expression != null : "Expression cannot be null";
 
         boolean isEnglish = SimplifyTruthsRestApiApplication.lang == Language.english;
 
@@ -214,20 +235,20 @@ public abstract class ExpressionUtils {
                 expressionTooBig = isEnglish ? "Expression too big" : "Uttrykket er for stort";
 
         final Pattern regex = Pattern.compile("^[^a-zA-ZæøåÆØÅ0-9()⋁⋀➔¬\\[\\]]|]\\[|\\)\\[|\\)\\(|\\(\\)$");
-        final Matcher matcher = regex.matcher(stringExp);
+        final Matcher matcher = regex.matcher(expression);
 
         boolean isMatch = matcher.find();
         if (isMatch) {
             String match = matcher.group();
-            return error(match.charAt(0), stringExp.indexOf(match), 0, illegalChar, atIndex);
+            return error(match.charAt(0), expression.indexOf(match), 0, illegalChar, atIndex);
         }
 
         Stack<Character> brackets = new Stack<>();
         boolean isTruthValue = false, insideSquare = false;
         int numberOfOperators = 0;
 
-        for (int i = 0; i < stringExp.length(); i++) {
-            char charAtI = stringExp.charAt(i);
+        for (int i = 0; i < expression.length(); i++) {
+            char charAtI = expression.charAt(i);
 
             if (!insideSquare && Operator.isOperator(charAtI) && charAtI != '¬') {
                 if (i == 0) {
@@ -240,7 +261,7 @@ public abstract class ExpressionUtils {
             }
 
             if (charAtI == '(' || charAtI == '[') {
-                if (i > 0 && !Operator.isOperator(stringExp.charAt(i - 1)) && !isParentheses(stringExp.charAt(i - 1))) {
+                if (i > 0 && !Operator.isOperator(expression.charAt(i - 1)) && !isParentheses(expression.charAt(i - 1))) {
                     return error(charAtI, i, 20, illegalChar, atIndex);
                 }
                 if (charAtI == '[') {
@@ -271,10 +292,10 @@ public abstract class ExpressionUtils {
             }
 
             if (i > 0 && !insideSquare) {
-                char prevChar = stringExp.charAt(i - 1);
+                char prevChar = expression.charAt(i - 1);
 
                 if (Operator.not.getOperator() == charAtI) {
-                    if (!Operator.isOperator(prevChar) && prevChar != '(' || i == stringExp.length() - 1) {
+                    if (!Operator.isOperator(prevChar) && prevChar != '(' || i == expression.length() - 1) {
                         return error(charAtI, i, 30, illegalChar, atIndex);
                     }
                     continue;
@@ -282,7 +303,7 @@ public abstract class ExpressionUtils {
 
                 // Return if two operators are following eachother, but not ¬
                 if (Operator.isOperator(charAtI) &&
-                        (Operator.isOperator(prevChar) || prevChar == '(' || i == stringExp.length() - 1)) {
+                        (Operator.isOperator(prevChar) || prevChar == '(' || i == expression.length() - 1)) {
                     return error(charAtI, i, 40, illegalChar, atIndex);
                 }
                 // Return if two atomic values are following eachother
@@ -293,17 +314,17 @@ public abstract class ExpressionUtils {
             }
         }
         if (!isTruthValue) {
-            return error('A', stringExp.length(), 23, missingChar, atIndex);
+            return error('A', expression.length(), 23, missingChar, atIndex);
         }
         if (brackets.size() > 0) {
-            return error(brackets.pop() == '(' ? ')' : ']', stringExp.length(), 24, missingChar, atIndex);
+            return error(brackets.pop() == '(' ? ')' : ']', expression.length(), 24, missingChar, atIndex);
         }
 
         return ""; // Legal expression
     }
 
     @NotNull
-    private static String error(char c, int index, int errorCode, @NotNull String errorMsg, @NotNull String atIndex) {
+    private String error(char c, int index, int errorCode, @NotNull String errorMsg, @NotNull String atIndex) {
         String error = errorMsg + " '" + c + "' " + atIndex + " " + index;
         printErr(error, errorCode);
         return error;
@@ -348,4 +369,24 @@ public abstract class ExpressionUtils {
         return is;
     }
 
+    public boolean isSimplify() {
+        return simplify;
+    }
+
+    public void setSimplify(boolean simplify) {
+        this.simplify = simplify;
+    }
+
+    public String getExpression() {
+        return expression;
+    }
+
+    public void setExpression(String expression) {
+        this.expression = expression;
+    }
+
+    @NotNull
+    public List<OrderOperations> getOperations() {
+        return operations;
+    }
 }

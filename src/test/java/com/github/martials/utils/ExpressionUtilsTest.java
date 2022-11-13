@@ -4,25 +4,34 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.github.martials.utils.ExpressionUtils.*;
-
 public class ExpressionUtilsTest {
+
+    ExpressionUtils eu;
 
     @BeforeEach
     void setUp() {
+        eu = new ExpressionUtils();
     }
 
     @Test
     void simplifyTest() {
 
         try {
-            Assertions.assertNotNull(simplify("A⋀B", false));
-            Assertions.assertNotNull(simplify("A⋁¬A", false));
-            Assertions.assertNotNull(simplify("A⋀B➔A", false));
-            Assertions.assertNotNull(simplify("A⋀¬A", false));
-            Assertions.assertNotNull(simplify("A⋀¬(A⋁B)", false));
-            Assertions.assertNotNull(ExpressionUtils.simplify("¬¬A", false));
-            Assertions.assertNotNull(ExpressionUtils.simplify("¬¬¬A", false));
+            eu.setSimplify(false);
+            eu.setExpression("A⋀B");
+            Assertions.assertNotNull(eu.simplify());
+            eu.setExpression("A⋁¬A");
+            Assertions.assertNotNull(eu.simplify());
+            eu.setExpression("A⋀B➔A");
+            Assertions.assertNotNull(eu.simplify());
+            eu.setExpression("A⋀¬A");
+            Assertions.assertNotNull(eu.simplify());
+            eu.setExpression("A⋀¬(A⋁B)");
+            Assertions.assertNotNull(eu.simplify());
+            eu.setExpression("¬¬A");
+            Assertions.assertNotNull(eu.simplify());
+            eu.setExpression("¬¬¬A");
+            Assertions.assertNotNull(eu.simplify());
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -34,28 +43,45 @@ public class ExpressionUtilsTest {
     @Test
     void isLegalExpressionTest() {
 
-        Assertions.assertEquals("", isLegalExpression("A"));
-        Assertions.assertEquals("", isLegalExpression("[Hello]"));
-        Assertions.assertEquals("", isLegalExpression("Å"));
-        Assertions.assertEquals("", isLegalExpression("[Hello]⋀[World]"));
+        eu.setExpression("A");
+        Assertions.assertEquals("", eu.isLegalExpression());
+        eu.setExpression("[Hello]");
+        Assertions.assertEquals("", eu.isLegalExpression());
+        eu.setExpression("Å");
+        Assertions.assertEquals("", eu.isLegalExpression());
+        eu.setExpression("[Hello]⋀[World]");
+        Assertions.assertEquals("", eu.isLegalExpression());
 
     }
 
     @Test
     void isIllegalExpressionTest() {
 
-        Assertions.assertNotEquals("", isLegalExpression(""));
-        Assertions.assertNotEquals("", isLegalExpression("#"));
-        Assertions.assertNotEquals("", isLegalExpression("⋁"));
-        Assertions.assertNotEquals("", isLegalExpression("AB"));
-        Assertions.assertNotEquals("", isLegalExpression("A⋁⋀"));
-        Assertions.assertNotEquals("", isLegalExpression("A("));
-        Assertions.assertNotEquals("", isLegalExpression("A["));
-        Assertions.assertNotEquals("", isLegalExpression("[A"));
-        Assertions.assertNotEquals("", isLegalExpression("A⋀(B]"));
-        Assertions.assertNotEquals("", isLegalExpression("A⋀()"));
-        Assertions.assertNotEquals("", isLegalExpression("A¬B"));
-        Assertions.assertNotEquals("", isLegalExpression("(A⋀B)(B⋀C)"));
-        Assertions.assertNotEquals("", isLegalExpression("[Hello][World]"));
+        eu.setExpression("");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("#");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("⋁");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("AB");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("A⋁⋀");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("A(");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("A[");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("[A");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("A⋀(B]");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("A⋀()");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("A¬B");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("(A⋀B)(B⋀C)");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
+        eu.setExpression("[Hello][World]");
+        Assertions.assertNotEquals("", eu.isLegalExpression());
     }
 }
