@@ -11,5 +11,5 @@ import java.util.List;
 
 public record ResultWithTable(@NotNull Status status, @NotNull String before, @NotNull String after,
                               @Nullable List<OrderOperations> orderOperations, @Nullable Expression expression,
-                              @Nullable TruthTable table) {
+                              @Nullable String[] header, @Nullable TruthTable table) {
 }

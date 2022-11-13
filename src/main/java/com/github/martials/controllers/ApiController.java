@@ -19,11 +19,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 @RestController
-public class ApiController { // TODO test! table getMapping give different results
+public class ApiController {
 
     private final Logger log = LoggerFactory.getLogger(ApiController.class);
 
@@ -70,7 +71,7 @@ public class ApiController { // TODO test! table getMapping give different resul
      * @return A matrix representation of a table with truth values
      */
     @NotNull
-    @GetMapping("/table")
+    @GetMapping("/table") // FIXME test! Gives wrong results
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
     public ResultOnlyTable table(
             @RequestBody(required = false) @Nullable final Expression exp,
@@ -118,7 +119,7 @@ public class ApiController { // TODO test! table getMapping give different resul
 
         if (exp == null) {
             log.warn("Parametre exp is empty, exiting...");
-            return new ResultWithTable(Status.NOT_FOUND, "", "", null, null, null);
+            return new ResultWithTable(Status.NOT_FOUND, "", "", null, null, null, null);
         }
 
         final String newExpression = replace(exp);
@@ -133,10 +134,20 @@ public class ApiController { // TODO test! table getMapping give different resul
                 expression != null ? expression.toString() : newExpression,
                 Expression.getOrderOfOperations(),
                 expression,
+                mapToStrings(table),
                 table);
 
         log.debug("Result sent: {}", result);
         return result;
+    }
+
+    private String[] mapToStrings(TruthTable table) {
+        if (table == null) {
+            return null;
+        }
+        return Arrays.stream(table.getExpressions())
+                .map(Expression::toString)
+                .toArray(String[]::new);
     }
 
     @Nullable
