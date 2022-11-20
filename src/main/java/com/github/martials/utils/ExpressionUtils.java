@@ -1,7 +1,6 @@
 package com.github.martials.utils;
 
 import com.github.martials.enums.Language;
-import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.expressions.CenterOperator;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.Operator;
@@ -19,9 +18,10 @@ public class ExpressionUtils {
     private final List<OrderOperations> operations;
     private String expression;
     private boolean simplify;
+    private final Language language;
 
     public ExpressionUtils() {
-        this(null, true);
+        this(null);
     }
 
     public ExpressionUtils(String expression) {
@@ -29,9 +29,14 @@ public class ExpressionUtils {
     }
 
     public ExpressionUtils(@Nullable String expression, boolean simplify) {
+        this(expression, simplify, Language.norwegianBokmaal);
+    }
+
+    public ExpressionUtils(@Nullable String expression, boolean simplify, Language language) {
         operations = new ArrayList<>();
         this.expression = expression;
         this.simplify = simplify;
+        this.language = language;
     }
 
     public Expression simplify(String expression) {
@@ -93,7 +98,7 @@ public class ExpressionUtils {
         exp.setRight(simplifyRec(stringExp.substring(center.index() + 1), simplify)); // Right
 
         if (simplify) {
-            exp.laws(operations);
+            exp.laws(operations, language);
         }
         // Moves expressions up the tree structure
         if (exp.getRight() == null) {
@@ -229,10 +234,10 @@ public class ExpressionUtils {
      *
      */
     @NotNull
-    public String isLegalExpression() {
+    public String isLegalExpression() { // TODO can be simplified with regex
         assert expression != null : "Expression cannot be null";
 
-        boolean isEnglish = SimplifyTruthsRestApiApplication.lang == Language.english;
+        boolean isEnglish = language == Language.english;
 
         final String illegalChar = isEnglish ? "Illegal character" : "Ugyldig tegn",
                 missingChar = isEnglish ? "Missing character" : "Manglende tegn",

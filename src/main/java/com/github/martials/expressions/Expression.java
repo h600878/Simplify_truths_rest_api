@@ -2,7 +2,6 @@ package com.github.martials.expressions;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.martials.enums.Language;
-import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +34,7 @@ public class Expression {
      * @param atomic   The atomic value of the expression, if the expression is not atomic this is 'null'.
      */
     public Expression(@NotNull String leading, Expression left, Operator operator, Expression right, @NotNull String trailing, String atomic) {
-        assert operator != Operator.not : "Operator cannot be not.";
+        assert operator != Operator.not : "Operator cannot be 'not'.";
 
         this.leading = leading;
         this.left = left;
@@ -43,6 +42,7 @@ public class Expression {
         this.right = right;
         this.trailing = trailing;
         this.atomic = atomic;
+        log.debug("Expression created={}", this);
     }
 
     public Expression(Expression left, Operator operator, Expression right, String atomic) {
@@ -102,18 +102,18 @@ public class Expression {
      */
     public boolean equalsAndOpposite(@NotNull Expression other) {
         if (StringUtils.numberOfChar(leading, '¬') % 2 == 1) {
-            return comparePositiveEquals(this, other);
+            return comparePositiveEquals(other);
         }
         else if (StringUtils.numberOfChar(other.leading, '¬') % 2 == 1) {
-            return comparePositiveEquals(other, this);
+            return other.comparePositiveEquals(this);
         }
 
         return Objects.equals(left, other.left) && Objects.equals(right, other.right) && !Objects.equals(operator, other.operator) &&
                 !Objects.equals(operator, Operator.implication) && !Objects.equals(other.operator, Operator.implication);
     }
 
-    private static boolean comparePositiveEquals(@NotNull Expression exp1, @NotNull Expression exp2) {
-        return new Expression(exp1.left, exp1.operator, exp1.right, exp1.atomic).equals(exp2);
+    private boolean comparePositiveEquals(@NotNull Expression other) {
+        return new Expression(left, operator, right, atomic).equals(other);
     }
 
     /**
@@ -150,8 +150,8 @@ public class Expression {
     /**
      * Calls all the laws then checks if the expression has been changed after
      */
-    public void laws(List<OrderOperations> operations) {
-        boolean isEnglish = SimplifyTruthsRestApiApplication.lang == Language.english;
+    public void laws(List<OrderOperations> operations, Language language) {
+        boolean isEnglish = language == Language.english;
 
         String exp = toString();
         eliminationOfImplication();
@@ -177,37 +177,32 @@ public class Expression {
             final String exp = toString();
 
             if (Objects.equals(operator, Operator.and) && !isInverse() || isAtomic()) {
-                removeBothSides(this);
+                removeLeadingAndTrailing();
             }
             // One is atomic, and the other is not
             else if (eitherChildAtomic()) {
                 if (Objects.equals(operator, left.operator) && !left.isInverse()) {
-                    removeBothSides(left);
+                    left.removeLeadingAndTrailing();
                 }
                 else if (Objects.equals(operator, right.operator) && !right.isInverse()) {
-                    removeBothSides(right);
+                    right.removeLeadingAndTrailing();
                 }
             }
             // Neither is atomic
             else if (!eitherChildAtomic()) {
                 if (Objects.equals(left.operator, right.operator) && !left.isInverse() && !right.isInverse()) {
-                    removeBothSides(left);
-                    removeBothSides(right);
+                    left.removeLeadingAndTrailing();
+                    right.removeLeadingAndTrailing();
                 }
                 if (Objects.equals(operator, left.operator) && !left.isInverse()) {
-                    removeBothSides(left);
+                    left.removeLeadingAndTrailing();
                 }
                 else if (Objects.equals(operator, right.operator) && !right.isInverse()) {
-                    removeBothSides(right);
+                    right.removeLeadingAndTrailing();
                 }
             }
             isChangedThenAdd(exp, "Removal of parentheses", operations);
         }
-    }
-
-    private void removeBothSides(@NotNull Expression exp) {
-        exp.leading = "";
-        exp.trailing = "";
     }
 
     /**
@@ -251,23 +246,20 @@ public class Expression {
         this.operator = Objects.equals(operator, Operator.and) ? Operator.or : Operator.and;
 
         if (!Objects.equals(operator, Operator.and)) {
-            if (bothChildrenAtomic()) {
-                if (!parentheses()) {
-                    leading += "(";
-                    trailing += ")";
-                }
+            if (bothChildrenAtomic() && noParentheses()) {
+                leading += "(";
+                trailing += ")";
             }
         }
-        else { // right.operator == or
-            if (!this.right.parentheses()) {
+        // right.operator == or
+        else if (this.right.noParentheses()) {
                 this.right.leading = "(";
                 this.right.trailing = ")";
             }
-        }
     }
 
-    private boolean parentheses() {
-        return leading.contains("(") && trailing.contains(")");
+    private boolean noParentheses() {
+        return !leading.contains("(") || !trailing.contains(")");
     }
 
     /**
@@ -279,7 +271,7 @@ public class Expression {
 
         if (left != null && right != null) {
             // Left and right side uses negation
-            if (left.isInverse() && right.isInverse()) {
+            if (bothChildrenInverse()) {
                 Operator newOperator = null;
 
                 if (Objects.equals(operator, Operator.and)) {
@@ -385,16 +377,17 @@ public class Expression {
         if (left != null && bothChildrenAtomic() && left.atomic.compareTo(right.atomic) >= 0) {
             String exp = toString();
             if (!Objects.equals(left.atomic, right.atomic) || left.equalsAndOpposite(right) && !right.isInverse()) {
-                swap();
+                swapChildren();
                 isChangedThenAdd(exp, "Commutative", operations);
             }
         }
     }
 
-    private void swap() {
+    private void swapChildren() {
         Expression help = left;
         left = right;
         right = help;
+        log.debug("Left and right child swapped");
     }
 
     /**
@@ -404,7 +397,7 @@ public class Expression {
 
         if (left != null && right != null && Objects.equals(operator, Operator.implication)) {
 
-            if (!left.isAtomic() && !left.parentheses()) {
+            if (!left.isAtomic() && left.noParentheses()) {
                 left.leading += "(";
                 left.trailing += ")";
             }
@@ -425,7 +418,7 @@ public class Expression {
             // If both are atomic values
             if (bothChildrenAtomic()) {
                 if (left.equals(right)) {
-                    removeRight(this);
+                    removeRight();
                 }
             }
             else if (eitherChildAtomic()) { // If one is atomic eg: A | (A & B)
@@ -442,7 +435,7 @@ public class Expression {
             else { // Neither of the expressions are atomic, eg: (A & B) | (A & B)
                 if (left.equals(right)) {
                     if (!bothChildrenInverse() || bothChildrenInverse()) {
-                        removeRight(this);
+                        removeRight();
                     }
                     if (!left.isInverse()) {
                         left.removeLeadingAndTrailing();
@@ -457,24 +450,24 @@ public class Expression {
                         final boolean leftRightEqRightLeft = left.right.equals(right.left);
 
                         // Ex: (A | B) | (A & B), remove (A & B)
-                        if (inverseEqual(left, right) && (leftLeftEqRightLeft && leftRightEqRightRight || leftLeftEqRightRight && leftRightEqRightLeft)) {
+                        if (left.inverseEqual(right) && (leftLeftEqRightLeft && leftRightEqRightRight || leftLeftEqRightRight && leftRightEqRightLeft)) {
 
                             if (Objects.equals(left.operator, Operator.and)) {
                                 left = right;
-                                removeRight(this);
+                                removeRight();
                             }
                             else if (Objects.equals(right.operator, Operator.and)) {
-                                removeRight(this);
+                                removeRight();
                             }
                         }
                         else if (Objects.equals(left.operator, operator) && Objects.equals(right.operator, operator)) {
                             // Ex: (A | B) | (A | C) <=> A | B | C
                             if (leftLeftEqRightLeft || leftRightEqRightLeft) {
                                 right.left = right.right;
-                                removeRight(right);
+                                right.removeRight();
                             }
                             else if (leftLeftEqRightRight || leftRightEqRightRight) {
-                                removeRight(right);
+                                right.removeRight();
                             }
                         }
                     }
@@ -483,18 +476,18 @@ public class Expression {
         }
     }
 
-    private void removeRight(@NotNull Expression exp) {
-        if (exp.isInverse() && exp.left != null) {
-            exp.left.leading = "¬";
+    private void removeRight() {
+        if (isInverse() && left != null) {
+            left.leading = "¬";
         }
-        exp.leading = "";
-        exp.operator = null;
-        exp.right = null;
-        exp.trailing = "";
+        leading = "";
+        operator = null;
+        right = null;
+        trailing = "";
     }
 
-    private boolean inverseEqual(@NotNull Expression exp1, @NotNull Expression exp2) {
-        return exp1.isInverse() == exp2.isInverse();
+    private boolean inverseEqual(@NotNull Expression other) {
+        return isInverse() == other.isInverse();
     }
 
     /**
@@ -512,7 +505,7 @@ public class Expression {
                 if (!removeLeft) {
                     this.left = this.right;
                 }
-                removeRight(this);
+                removeRight();
             }
             // Removed the entire right side
             else if ((Objects.equals(operator, Operator.or) && Objects.equals(right.operator, Operator.and) ||
@@ -521,14 +514,14 @@ public class Expression {
                 if (removeLeft) {
                     this.left = this.right;
                 }
-                removeRight(this);
+                removeRight();
             }
             // If right side is always false and operator is "or", remove right side (Ex: B | (A & ¬A) <=> B)
             else if (Objects.equals(operator, Operator.or) && right.left.equalsAndOpposite(right.right) && Objects.equals(right.operator, Operator.and)) {
                 if (removeLeft) {
                     this.left = this.right;
                 }
-                removeRight(this);
+                removeRight();
             }
             // Removes the left side of the right side
             else {
@@ -536,13 +529,13 @@ public class Expression {
                         !right.isInverse() || left.equalsAndOpposite(right.left) && Objects.equals(operator, Operator.or) &&
                         Objects.equals(right.operator, Operator.and) || left.equalsAndOpposite(right.right)) {
                     right.left = right.right;
-                    removeRight(right);
+                    right.removeRight();
                 }
                 // Removes the right side of the right side
                 else if (leftEqualsRight || leftEqualsLeft && (Objects.equals(operator, Operator.implication) &&
                         Objects.equals(right.operator, Operator.or) || !Objects.equals(left.leading, right.leading)) ||
                         left.equalsAndOpposite(right.right) || left.equalsAndOpposite(right.left)) {
-                    removeRight(right);
+                    right.removeRight();
                 }
             }
         }
@@ -586,7 +579,7 @@ public class Expression {
      * @param exp The Expression
      * @return {number} The number of atomic expressions in the expression
      */
-    private int getNumberOfAtomics(@Nullable Expression exp) {
+    private static int getNumberOfAtomics(@Nullable Expression exp) {
         if (exp == null) {
             return 0;
         }
@@ -637,7 +630,7 @@ public class Expression {
      * @param exp         The current object
      * @param expressions An empty list of type Expression, where the objects will be stored
      */
-    private void toSetArray(Expression exp, List<Expression> expressions) {
+    private static void toSetArray(Expression exp, List<Expression> expressions) {
         if (exp != null) {
             toSetArray(exp.left, expressions);
             toSetArray(exp.right, expressions);

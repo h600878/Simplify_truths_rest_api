@@ -1,6 +1,5 @@
 package com.github.martials.controllers;
 
-import com.github.martials.SimplifyTruthsRestApiApplication;
 import com.github.martials.Status;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Language;
@@ -43,7 +42,7 @@ public class ApiController { // TODO make thread-safe
 
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
 
-        setAndLogLanguage(lang, header);
+        Language language = setAndLogLanguage(lang, header);
 
         if (exp == null) {
             log.warn("Parametre exp is empty, exiting...");
@@ -51,7 +50,7 @@ public class ApiController { // TODO make thread-safe
         }
 
         final String newExpression = replace(exp);
-        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify);
+        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
         final String isLegal = eu.isLegalExpression();
 
         final Expression expression = simplifyIfLegal(eu, isLegal);
@@ -105,7 +104,7 @@ public class ApiController { // TODO make thread-safe
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
                 ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide);
 
-        setAndLogLanguage(lang, header);
+        Language language = setAndLogLanguage(lang, header);
 
         if (exp == null) {
             log.warn("Parametre exp is empty, exiting...");
@@ -113,7 +112,7 @@ public class ApiController { // TODO make thread-safe
         }
 
         final String newExpression = replace(exp);
-        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify);
+        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
         final String isLegal = eu.isLegalExpression();
 
         final Expression expression = simplifyIfLegal(eu, isLegal);
@@ -163,30 +162,27 @@ public class ApiController { // TODO make thread-safe
         return table;
     }
 
-    private void setAndLogLanguage(@Nullable String lang, @NotNull String header) {
+    private Language setAndLogLanguage(@Nullable String lang, @NotNull String header) {
         log.info("ACCEPT_LANGUAGE header=" + header);
-        setLanguage(lang, header);
-        log.info("Language set to " + SimplifyTruthsRestApiApplication.lang);
+        Language language = setLanguage(lang, header);
+        log.info("Language set to " + language);
+        return language;
     }
 
-    private void setLanguage(String language, @NotNull String header) {
+    private Language setLanguage(String language, @NotNull String header) {
         final String headerLang = header.substring(0, 2);
         final List<String> norLangs = List.of("nb", "no", "nn");
 
         if (language != null) {
-            boolean isFound = false;
             for (Language lang : Language.values()) {
                 if (language.equalsIgnoreCase(lang.getLang())) {
-                    SimplifyTruthsRestApiApplication.lang = lang;
-                    isFound = true;
+                    return lang;
                 }
             }
-            if (!isFound) {
-                log.warn("Language was not found");
-            }
+            log.warn("Language was not found");
         }
         else if (headerLang.equalsIgnoreCase("en")) {
-            SimplifyTruthsRestApiApplication.lang = Language.english;
+            return Language.english;
         }
         else if (!norLangs.contains(headerLang.toLowerCase())) { // If neither "en", or the Norwegian languages
             try {
@@ -196,6 +192,7 @@ public class ApiController { // TODO make thread-safe
                 log.warn("No language recognized in ACCEPT_LANGUAGE");
             }
         }
+        return Language.norwegianBokmaal; // Default
     }
 
     @NotNull
