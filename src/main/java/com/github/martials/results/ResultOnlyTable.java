@@ -19,6 +19,11 @@ public class ResultOnlyTable extends EmptyResult {
         this.table = table;
     }
 
+    @NotNull
+    public String getExpression() {
+        return expression;
+    }
+
     @Nullable
     public TruthTable getTable() {
         return table;

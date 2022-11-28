@@ -38,7 +38,10 @@ public class ApiController { // TODO make thread-safe
     @NotNull
     @GetMapping("/simplify")
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp, @RequestParam(required = false) @Nullable final String lang, @RequestParam(defaultValue = "true") final boolean simplify, @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp,
+                                @RequestParam(required = false) @Nullable final String lang,
+                                @RequestParam(defaultValue = "true") final boolean simplify,
+                                @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
 
@@ -71,9 +74,13 @@ public class ApiController { // TODO make thread-safe
      * @return A matrix representation of a table with truth values
      */
     @NotNull
-    @GetMapping("/table") // FIXME test! Gives wrong results
+    @PostMapping("/table")
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp, @RequestParam(defaultValue = "defaultSort") final Sort sort, @RequestParam(defaultValue = "none") final Hide hide, @RequestParam(required = false) @Nullable final String lang, @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp,
+                             @RequestHeader(defaultValue = "defaultSort") final Sort sort,
+                             @RequestHeader(defaultValue = "none") final Hide hide,
+                             @RequestHeader(required = false) @Nullable final String lang,
+                             @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("GetMapping with the following parametres: exp={}, sort={}, hide={}, lang={}", exp, sort, hide, lang);
 
@@ -99,7 +106,12 @@ public class ApiController { // TODO make thread-safe
     @NotNull
     @GetMapping("/simplify/table")
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
-    public EmptyResult simplifyAndTable(@RequestParam(required = false) @Nullable final String exp, @RequestParam(required = false) @Nullable final String lang, @RequestParam(defaultValue = "true") final boolean simplify, @RequestParam(defaultValue = "defaultSort") final Sort sort, @RequestParam(defaultValue = "none") final Hide hide, @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
+    public EmptyResult simplifyAndTable(@RequestParam(required = false) @Nullable final String exp,
+                                        @RequestParam(required = false) @Nullable final String lang,
+                                        @RequestParam(defaultValue = "true") final boolean simplify,
+                                        @RequestParam(defaultValue = "defaultSort") final Sort sort,
+                                        @RequestParam(defaultValue = "none") final Hide hide,
+                                        @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
 
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
                 ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide);

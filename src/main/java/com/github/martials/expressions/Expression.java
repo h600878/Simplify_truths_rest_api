@@ -600,7 +600,7 @@ public class Expression {
 
         boolean result = false;
 
-        if (Objects.equals(operator, Operator.and)) {
+        if (Objects.equals(operator.getOperator(), Operator.and.getOperator())) {
             result = left && right;
         }
         else if (Objects.equals(operator, Operator.or)) {

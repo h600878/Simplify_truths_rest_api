@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -108,9 +107,7 @@ public class Operator { // TODO remove values[] and only use regex?
         Operator operator1 = (Operator) o;
 
         if (operator != operator1.operator) return false;
-        if (weight != operator1.weight) return false;
-
-        return Objects.equals(regex, operator1.regex);
+        return weight == operator1.weight;
     }
 
     @Override
