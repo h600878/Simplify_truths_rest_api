@@ -26,7 +26,7 @@ import java.util.Objects;
 @RestController
 public class ApiController { // TODO make thread-safe
 
-    private final Logger log = LoggerFactory.getLogger(ApiController.class);
+    private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
     /**
      * @param exp      A truth expression

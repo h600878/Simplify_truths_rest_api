@@ -10,7 +10,8 @@
     </parent>
     <groupId>com.github</groupId>
     <artifactId>martials</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1</version>
+    <packaging>war</packaging>
     <name>Simplify_truths_rest_api</name>
     <description>Simplify_truths_rest_api</description>
     <properties>
@@ -19,14 +20,15 @@
     </properties>
     <dependencies>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-data-jpa</artifactId>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -37,9 +39,13 @@
         </dependency>
 
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
         </dependency>
 
         <dependency>
@@ -64,6 +70,9 @@
     </dependencies>
 
     <build>
+
+        <finalName>${project.name}</finalName> <!-- The name of the war file -->
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
