@@ -57,7 +57,7 @@ public class TruthTable {
     }
 
     @NotNull
-    public boolean[][] create(Hide hide, Sort sort) {
+    public boolean[][] create(Hide hide, Sort sort) { // TODO implement hide and sort
 
         boolean[][] helperMatrix = helperMatrix(ExpressionUtils.getNumberOfUniqueAtomics(expressions));
 

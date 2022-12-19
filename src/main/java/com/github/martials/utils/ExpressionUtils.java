@@ -234,7 +234,7 @@ public class ExpressionUtils {
      *
      */
     @NotNull
-    public String isLegalExpression() { // TODO can be simplified with regex
+    public String isLegalExpression() { // TODO can be simplified with regex and throw exceptions instead of returning strings
         assert expression != null : "Expression cannot be null";
 
         boolean isEnglish = language == Language.english;

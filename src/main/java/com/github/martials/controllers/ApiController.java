@@ -54,9 +54,9 @@ public class ApiController { // TODO make sure it's thread-safe
 
         final String newExpression = replace(exp);
         final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
-        final String isLegal = eu.isLegalExpression();
+        final String isLegal = eu.isLegalExpression(); // TODO throw exception if not legal
 
-        final Expression expression = simplifyIfLegal(eu, isLegal);
+        final Expression expression = simplifyIfLegal(eu, isLegal); // TODO use isLegalExpression here and surround with try catch to get the error message
 
         final EmptyResult result;
         if (expression == null) {
