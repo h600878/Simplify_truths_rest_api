@@ -89,7 +89,7 @@ public class Expression {
             else if (operator != null && !(isAtomic() || otherExp.isAtomic()) && Objects.equals(operator, otherExp.operator)) {
 
                 return Objects.equals(leading, otherExp.leading) && (Objects.equals(left, otherExp.left) &&
-                        Objects.equals(right, otherExp.right) || Objects.equals(left, otherExp.right));
+                        Objects.equals(right, otherExp.right) || Objects.equals(left, otherExp.right) && Objects.equals(right, otherExp.left));
             }
         }
         return false;
