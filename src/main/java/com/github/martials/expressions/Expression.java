@@ -117,20 +117,6 @@ public class Expression {
     }
 
     /**
-     * Finds and returns the leftmost atomic value
-     *
-     * @return If it finds an atomic value, returns it, otherwise null
-     */
-    @Nullable
-    @JsonIgnore
-    public String findAtomicValue() {
-        if (isAtomic()) {
-            return atomic;
-        }
-        return left.findAtomicValue();
-    }
-
-    /**
      * Checks if an expression has changed, if 'true' before, after and the law will be stored in an object and pushed to an array
      *
      * @param exp The expression the method compares to
@@ -219,10 +205,10 @@ public class Expression {
             if (left.left != null && left.right != null && right.left != null && right.right != null &&
                     !Objects.equals(left.operator, operator)) {
 
-                final String leftLeft = left.left.findAtomicValue();
-                final String leftRight = left.right.findAtomicValue();
-                final String rightLeft = right.left.findAtomicValue();
-                final String rightRight = right.right.findAtomicValue();
+                final String leftLeft = left.left.atomic;
+                final String leftRight = left.right.atomic;
+                final String rightLeft = right.left.atomic;
+                final String rightRight = right.right.atomic;
 
                 if (Objects.equals(leftLeft, rightLeft) && !Objects.equals(leftRight, rightRight)) {
                     setObjects(left.right, right.right, left.left);
@@ -621,9 +607,9 @@ public class Expression {
      */
     @NotNull
     public Expression[] toSetArray() {
-        List<Expression> list = new ArrayList<>();
+        final List<Expression> list = new ArrayList<>();
         toSetArray(this, list);
-        return list.toArray(new Expression[0]);
+        return list.toArray(Expression[]::new);
     }
 
     /**
