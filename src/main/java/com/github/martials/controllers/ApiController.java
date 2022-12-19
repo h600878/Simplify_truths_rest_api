@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-public class ApiController { // TODO make thread-safe
+public class ApiController { // TODO make sure it's thread-safe
 
     private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
