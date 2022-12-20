@@ -228,16 +228,17 @@ public class ExpressionUtils {
     }
 
     /**
-     * TODO Gonna need some cleaning
      * Checks if a string is a valid truth expression. If the string is valid, it will return "empty string", otherwise an error message
      * It is not true if either of the following are present.
      * More than one operator in a row.
      * More than one atomic value in a row.
      * Not operator prior to another different operator.
      * The parentheses do not match.
-     *
+     * @throws IllegalCharacterException If the string contains an illegal character, or missplaced chacater
+     * @throws MissingCharaterException If the string is missing a character, or missing a parenthesis
+     * @throws TooBigExpressionException If the expression has more than 10 parts
      */
-    public void isLegalExpression() throws IllegalCharacterException, MissingCharaterException {
+    public void isLegalExpression() throws IllegalCharacterException, MissingCharaterException, TooBigExpressionException { // TODO Gonna need some cleaning, use regex!
         assert expression != null : "Expression cannot be null";
 
         final Pattern regex = Pattern.compile("^[^a-zA-ZæøåÆØÅ0-9()⋁⋀➔¬\\[\\]]|]\\[|\\)\\[|\\)\\(|\\(\\)$");
@@ -293,7 +294,7 @@ public class ExpressionUtils {
                     throw new IllegalCharacterException(language, charAtI);
                 }
             }
-            else if (!Operator.isOperator(charAtI) && !isParentheses(charAtI)) {
+            else if (!(Operator.isOperator(charAtI) || isParentheses(charAtI))) {
                 isTruthValue = true;
             }
 
