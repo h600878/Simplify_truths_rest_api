@@ -8,6 +8,7 @@ import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class TruthTable {
 
@@ -20,15 +21,15 @@ public class TruthTable {
     }
 
     public TruthTable(@NotNull Expression[] expressions) {
-        this(expressions, Hide.none, Sort.defaultSort);
+        this(expressions, Hide.NONE, Sort.DEFAULT);
     }
 
     public TruthTable(@NotNull Expression[] expressions, Sort sort) {
-        this(expressions, Hide.none, sort);
+        this(expressions, Hide.NONE, sort);
     }
 
     public TruthTable(@NotNull Expression[] expressions, Hide hide) {
-        this(expressions, hide, Sort.defaultSort);
+        this(expressions, hide, Sort.DEFAULT);
     }
 
     @NotNull
@@ -66,13 +67,15 @@ public class TruthTable {
 
         // Creates a matrix with the body of the table, using the helper matrix helperMatrix to fill in the correct values.
         // The expressions that aren't atomic, uses the atomic values to see if they're truthy
-        final boolean[][] truthMatrix = new boolean[helperMatrix[0].length][expressions.length];
+        boolean[][] truthMatrix = new boolean[helperMatrix[0].length][expressions.length];
 
         for (int row = 0; helperMatrix[0].length > 0 && row < helperMatrix[0].length; row++) {
 
             for (int column = 0; column < expressions.length && row < truthMatrix.length; column++) {
 
                 final Expression exp = expressions[column];
+
+                assert truthMatrix[row] != null;
 
                 // If not using 'not' operator
                 if (exp.isAtomic() && StringUtils.numberOfChar(exp.getLeading(), '¬') % 2 == 0) {
@@ -100,27 +103,28 @@ public class TruthTable {
 
                     final boolean boolExp = exp.solve(left, right);
 
-//                    if (exp == expressions[expressions.length - 1] && (hide == Hide.hideTrue && boolExp ||
-//                            hide == Hide.hideFalse && !boolExp)) {
-//                        truthMatrix.splice(row);
-//                    }
-//                    else {
-                    truthMatrix[row][column] = boolExp;
-//
-//                        if (exp == expressions[expressions.length - 1] && (sort == Sort.trueFirst && boolExp ||
-//                                sort == Sort.falseFirst && !boolExp)) {
-//                            int r = row;
-//                            while (r > 0 && (truthMatrix[r - 1] == null || truthMatrix[r - 1][expressions.length - 1] == !boolExp)) {
-//                                final boolean[] help = truthMatrix[r];
-//                                truthMatrix[r] = truthMatrix[r - 1];
-//                                truthMatrix[r - 1] = help;
-//                                r--;
-//                            }
-//                        }
-//                    }
+                    if (exp == expressions[expressions.length - 1] && (hide == Hide.TRUE && boolExp ||
+                            hide == Hide.FALSE && !boolExp)) {
+                        truthMatrix[row] = null;
+                    }
+                    else {
+                        truthMatrix[row][column] = boolExp;
+
+                        if (exp == expressions[expressions.length - 1] &&
+                                (sort == Sort.TRUE_FIRST && boolExp || sort == Sort.FALSE_FIRST && !boolExp)) {
+                            int r = row;
+                            while (r > 0 && (truthMatrix[r - 1] == null || truthMatrix[r - 1][expressions.length - 1] == !boolExp)) {
+                                final boolean[] help = truthMatrix[r];
+                                truthMatrix[r] = truthMatrix[r - 1];
+                                truthMatrix[r - 1] = help;
+                                r--;
+                            }
+                        }
+                    }
                 }
             }
         }
+        truthMatrix = Arrays.stream(truthMatrix).filter(Objects::nonNull).toArray(boolean[][]::new);
         return truthMatrix;
     }
 

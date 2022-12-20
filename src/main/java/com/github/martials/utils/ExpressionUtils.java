@@ -32,7 +32,7 @@ public class ExpressionUtils {
     }
 
     public ExpressionUtils(@Nullable String expression, boolean simplify) {
-        this(expression, simplify, Language.norwegianBokmaal);
+        this(expression, simplify, Language.NORWEGIAN_BOKMAAL);
     }
 
     public ExpressionUtils(@Nullable String expression, boolean simplify, Language language) {

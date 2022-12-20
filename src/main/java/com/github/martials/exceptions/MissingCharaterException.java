@@ -8,7 +8,7 @@ public class MissingCharaterException extends RuntimeException {
     private static final String norwegianMessage = "Mangler tegn";
 
     public MissingCharaterException(Language language, char c) {
-        super((language == Language.english ? englishMessage : norwegianMessage) + " '" + c + "'");
+        super((language == Language.ENGLISH ? englishMessage : norwegianMessage) + " '" + c + "'");
     }
 
     public MissingCharaterException() {

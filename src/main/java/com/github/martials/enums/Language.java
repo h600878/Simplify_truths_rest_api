@@ -1,8 +1,8 @@
 package com.github.martials.enums;
 
 public enum Language {
-    norwegianBokmaal("nb"),
-    english("en");
+    NORWEGIAN_BOKMAAL("nb"),
+    ENGLISH("en");
 
     private final String lang;
 

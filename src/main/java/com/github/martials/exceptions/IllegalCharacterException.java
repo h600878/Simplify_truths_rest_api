@@ -8,7 +8,7 @@ public class IllegalCharacterException extends RuntimeException {
     private static final String norwegianMessage = "Ugyldig tegn";
 
     public IllegalCharacterException(Language language, char c) {
-        super((language == Language.english ? englishMessage : norwegianMessage) + " '" + c + "'");
+        super((language == Language.ENGLISH ? englishMessage : norwegianMessage) + " '" + c + "'");
     }
 
     public IllegalCharacterException() {

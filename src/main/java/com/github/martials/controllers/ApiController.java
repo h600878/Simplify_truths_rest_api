@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @RestController
 public class ApiController { // TODO make sure it's thread-safe
@@ -58,7 +59,7 @@ public class ApiController { // TODO make sure it's thread-safe
         final String newExpression = replace(exp);
         final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
 
-        final EmptyResult result = simplifyIfLegal(eu, (expression, table) -> new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression));
+        final EmptyResult result = simplifyIfLegal(eu, expression -> new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression));
 
         log.debug("Result sent: {}", result);
         return result;
@@ -72,7 +73,7 @@ public class ApiController { // TODO make sure it's thread-safe
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
     public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp,
                              @RequestHeader(defaultValue = "defaultSort") final Sort sort,
-                             @RequestHeader(defaultValue = "none") final Hide hide,
+                             @RequestHeader(defaultValue = "NONE") final Hide hide,
                              @RequestHeader(required = false) @Nullable final String lang,
                              @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
@@ -103,8 +104,8 @@ public class ApiController { // TODO make sure it's thread-safe
     public EmptyResult simplifyAndTable(@RequestParam(required = false) @Nullable final String exp,
                                         @RequestParam(required = false) @Nullable final String lang,
                                         @RequestParam(defaultValue = "true") final boolean simplify,
-                                        @RequestParam(defaultValue = "defaultSort") final Sort sort,
-                                        @RequestParam(defaultValue = "none") final Hide hide,
+                                        @RequestParam(defaultValue = "DEFAULT") final Sort sort,
+                                        @RequestParam(defaultValue = "NONE") final Hide hide,
                                         @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
 
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
@@ -120,8 +121,13 @@ public class ApiController { // TODO make sure it's thread-safe
         final String newExpression = replace(exp);
         final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
 
-        final EmptyResult result = simplifyIfLegal(eu, (expression, table) -> new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),
-                expression, mapToStrings(table), table));
+        final EmptyResult result = simplifyIfLegal(eu, expression -> {
+
+            TruthTable table = new TruthTable(expression.toSetArray(), hide, sort);
+            log.debug("New table created: {}", table);
+            return new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),
+                    expression, mapToStrings(table), table);
+        });
 
         log.debug("Result sent: {}", result);
         return result;
@@ -135,7 +141,7 @@ public class ApiController { // TODO make sure it's thread-safe
     }
 
     @NotNull
-    private EmptyResult simplifyIfLegal(@NotNull ExpressionUtils eu, BiFunction<Expression, TruthTable, EmptyResult> function) {
+    private EmptyResult simplifyIfLegal(@NotNull ExpressionUtils eu, Function<Expression, EmptyResult> function) {
 
         String isLegal = "";
 
@@ -156,15 +162,12 @@ public class ApiController { // TODO make sure it's thread-safe
             expression = null;
         }
 
-        final TruthTable table;
         final EmptyResult result;
         if (expression == null) {
             result = new EmptyResult(new Status(500, isLegal));
         }
         else {
-            table = new TruthTable(expression.toSetArray());
-            log.debug("New table created: {}", table);
-            result = function.apply(expression, table);
+            result = function.apply(expression);
         }
 
         return result;
@@ -192,7 +195,7 @@ public class ApiController { // TODO make sure it's thread-safe
             log.warn("Language was not found");
         }
         else if (headerLang.equalsIgnoreCase("en")) {
-            return Language.english;
+            return Language.ENGLISH;
         }
         else if (!norLangs.contains(headerLang.toLowerCase())) { // If neither "en", or the Norwegian languages
             try {
@@ -202,7 +205,7 @@ public class ApiController { // TODO make sure it's thread-safe
                 log.warn("No language recognized in ACCEPT_LANGUAGE");
             }
         }
-        return Language.norwegianBokmaal; // Default
+        return Language.NORWEGIAN_BOKMAAL; // Default
     }
 
     @NotNull

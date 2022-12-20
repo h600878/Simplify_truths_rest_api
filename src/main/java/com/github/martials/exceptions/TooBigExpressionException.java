@@ -8,7 +8,7 @@ public class TooBigExpressionException extends RuntimeException {
     private static final String norwegianMessage = "Uttrykket er for stort, maks 10 argumenter";
 
     public TooBigExpressionException(Language language) {
-        super(language == Language.english ? englishMessage : norwegianMessage);
+        super(language == Language.ENGLISH ? englishMessage : norwegianMessage);
     }
 
     public TooBigExpressionException() {

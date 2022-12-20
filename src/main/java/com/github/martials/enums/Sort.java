@@ -1,7 +1,7 @@
 package com.github.martials.enums;
 
 public enum Sort {
-    defaultSort,
-    trueFirst,
-    falseFirst
+    DEFAULT,
+    TRUE_FIRST,
+    FALSE_FIRST
 }

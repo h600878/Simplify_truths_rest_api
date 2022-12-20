@@ -137,7 +137,7 @@ public class Expression {
      * Calls all the laws then checks if the expression has been changed after
      */
     public void laws(List<OrderOperations> operations, Language language) {
-        boolean isEnglish = language == Language.english;
+        boolean isEnglish = language == Language.ENGLISH;
 
         String exp = toString();
         eliminationOfImplication();
