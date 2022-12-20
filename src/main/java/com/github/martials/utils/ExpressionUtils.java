@@ -1,6 +1,9 @@
 package com.github.martials.utils;
 
 import com.github.martials.enums.Language;
+import com.github.martials.exceptions.IllegalCharacterException;
+import com.github.martials.exceptions.MissingCharaterException;
+import com.github.martials.exceptions.TooBigExpressionException;
 import com.github.martials.expressions.CenterOperator;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.Operator;
@@ -39,6 +42,7 @@ public class ExpressionUtils {
         this.language = language;
     }
 
+    @NotNull
     public Expression simplify(String expression) {
         setExpression(expression);
         return simplify();
@@ -233,16 +237,8 @@ public class ExpressionUtils {
      * The parentheses do not match.
      *
      */
-    @NotNull
-    public String isLegalExpression() { // TODO can be simplified with regex and throw exceptions instead of returning strings
+    public void isLegalExpression() throws IllegalCharacterException, MissingCharaterException {
         assert expression != null : "Expression cannot be null";
-
-        boolean isEnglish = language == Language.english;
-
-        final String illegalChar = isEnglish ? "Illegal character" : "Ugyldig tegn",
-                missingChar = isEnglish ? "Missing character" : "Manglende tegn",
-                atIndex = isEnglish ? "at index:" : "ved indeks:",
-                expressionTooBig = isEnglish ? "Expression too big" : "Uttrykket er for stort";
 
         final Pattern regex = Pattern.compile("^[^a-zA-ZæøåÆØÅ0-9()⋁⋀➔¬\\[\\]]|]\\[|\\)\\[|\\)\\(|\\(\\)$");
         final Matcher matcher = regex.matcher(expression);
@@ -250,7 +246,7 @@ public class ExpressionUtils {
         boolean isMatch = matcher.find();
         if (isMatch) {
             String match = matcher.group();
-            return error(match.charAt(0), expression.indexOf(match), 0, illegalChar, atIndex);
+            throw new IllegalCharacterException(language, match.charAt(0));
         }
 
         Stack<Character> brackets = new Stack<>();
@@ -262,23 +258,23 @@ public class ExpressionUtils {
 
             if (!insideSquare && Operator.isOperator(charAtI) && charAtI != '¬') {
                 if (i == 0) {
-                    return error(charAtI, i, 10, illegalChar, atIndex);
+                    throw new IllegalCharacterException(language, charAtI);
                 }
                 numberOfOperators++;
                 if (numberOfOperators > 9) {
-                    return expressionTooBig;
+                    throw new TooBigExpressionException(language);
                 }
             }
 
             if (charAtI == '(' || charAtI == '[') {
                 if (i > 0 && !Operator.isOperator(expression.charAt(i - 1)) && !isParentheses(expression.charAt(i - 1))) {
-                    return error(charAtI, i, 20, illegalChar, atIndex);
+                    throw new IllegalCharacterException(language, charAtI);
                 }
                 if (charAtI == '[') {
                     try {
                         char top = brackets.pop();
                         if (brackets.peek() == '[') {
-                            return error(charAtI, i, 21, illegalChar, atIndex);
+                            throw new IllegalCharacterException(language, charAtI);
                         }
                         brackets.push(top);
                     }
@@ -294,7 +290,7 @@ public class ExpressionUtils {
                     insideSquare = false;
                 }
                 if (charAtI == ')' && pop != '(' || charAtI == ']' && pop != '[') {
-                    return error(charAtI, i, 22, illegalChar, atIndex);
+                    throw new IllegalCharacterException(language, charAtI);
                 }
             }
             else if (!Operator.isOperator(charAtI) && !isParentheses(charAtI)) {
@@ -306,42 +302,30 @@ public class ExpressionUtils {
 
                 if (Operator.not.getOperator() == charAtI) {
                     if (!Operator.isOperator(prevChar) && prevChar != '(' || i == expression.length() - 1) {
-                        return error(charAtI, i, 30, illegalChar, atIndex);
+                        throw new IllegalCharacterException(language, charAtI);
                     }
                     continue;
                 }
 
-                // Return if two operators are following eachother, but not ¬
+                // Throw if two operators are following eachother, but not ¬
                 if (Operator.isOperator(charAtI) &&
                         (Operator.isOperator(prevChar) || prevChar == '(' || i == expression.length() - 1)) {
-                    return error(charAtI, i, 40, illegalChar, atIndex);
+                    throw new IllegalCharacterException(language, charAtI);
                 }
-                // Return if two atomic values are following eachother
+                // Throw if two atomic values are following eachother
                 else if (!(charAtI == ']' || Operator.isOperator(charAtI) || Operator.isOperator(prevChar) ||
                         isParentheses(charAtI) || isParentheses(prevChar))) {
-                    return error(charAtI, i, 50, illegalChar, atIndex);
+                    throw new IllegalCharacterException(language, charAtI);
                 }
             }
         }
         if (!isTruthValue) {
-            return error('A', expression.length(), 23, missingChar, atIndex);
+            throw new MissingCharaterException(language, 'A');
         }
         if (brackets.size() > 0) {
-            return error(brackets.pop() == '(' ? ')' : ']', expression.length(), 24, missingChar, atIndex);
+            throw new MissingCharaterException(language, brackets.pop() == '(' ? ')' : ']');
         }
 
-        return ""; // Legal expression
-    }
-
-    @NotNull
-    private String error(char c, int index, int errorCode, @NotNull String errorMsg, @NotNull String atIndex) {
-        String error = errorMsg + " '" + c + "' " + atIndex + " " + index;
-        printErr(error, errorCode);
-        return error;
-    }
-
-    private static void printErr(@NotNull String error, int errorCode) {
-        System.err.println(error + ". code=" + errorCode);
     }
 
     private static boolean isParentheses(char c) {

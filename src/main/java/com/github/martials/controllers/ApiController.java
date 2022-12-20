@@ -4,6 +4,9 @@ import com.github.martials.Status;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Language;
 import com.github.martials.enums.Sort;
+import com.github.martials.exceptions.IllegalCharacterException;
+import com.github.martials.exceptions.MissingCharaterException;
+import com.github.martials.exceptions.TooBigExpressionException;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.TruthTable;
 import com.github.martials.results.EmptyResult;
@@ -21,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.BiFunction;
 
 @RestController
 public class ApiController { // TODO make sure it's thread-safe
@@ -54,17 +57,8 @@ public class ApiController { // TODO make sure it's thread-safe
 
         final String newExpression = replace(exp);
         final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
-        final String isLegal = eu.isLegalExpression(); // TODO throw exception if not legal
 
-        final Expression expression = simplifyIfLegal(eu, isLegal); // TODO use isLegalExpression here and surround with try catch to get the error message
-
-        final EmptyResult result;
-        if (expression == null) {
-            result = new EmptyResult(new Status(500, isLegal));
-        }
-        else {
-            result = new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression);
-        }
+        final EmptyResult result = simplifyIfLegal(eu, (expression, table) -> new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression));
 
         log.debug("Result sent: {}", result);
         return result;
@@ -125,19 +119,9 @@ public class ApiController { // TODO make sure it's thread-safe
 
         final String newExpression = replace(exp);
         final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
-        final String isLegal = eu.isLegalExpression();
 
-        final Expression expression = simplifyIfLegal(eu, isLegal);
-        final TruthTable table = getTruthTableIfLegal(expression, isLegal);
-
-        final EmptyResult result;
-        if (expression == null) {
-            result = new EmptyResult(new Status(500, isLegal));
-        }
-        else {
-            result = new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),
-                    expression, mapToStrings(table), table);
-        }
+        final EmptyResult result = simplifyIfLegal(eu, (expression, table) -> new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),
+                expression, mapToStrings(table), table));
 
         log.debug("Result sent: {}", result);
         return result;
@@ -150,8 +134,18 @@ public class ApiController { // TODO make sure it's thread-safe
         return Arrays.stream(table.getExpressions()).map(Expression::toString).toArray(String[]::new);
     }
 
-    @Nullable
-    private Expression simplifyIfLegal(ExpressionUtils eu, @NotNull String isLegal) {
+    @NotNull
+    private EmptyResult simplifyIfLegal(@NotNull ExpressionUtils eu, BiFunction<Expression, TruthTable, EmptyResult> function) {
+
+        String isLegal = "";
+
+        try {
+            eu.isLegalExpression();
+        }
+        catch (IllegalCharacterException | MissingCharaterException | TooBigExpressionException e) {
+            isLegal = e.getMessage();
+        }
+
         final Expression expression;
         if (isLegal.equals("")) {
             expression = eu.simplify();
@@ -161,19 +155,22 @@ public class ApiController { // TODO make sure it's thread-safe
             log.error("Expression is not legal: {}", isLegal);
             expression = null;
         }
-        return expression;
-    }
 
-    @Nullable
-    private TruthTable getTruthTableIfLegal(@Nullable Expression expression, @NotNull String isLegal) {
-        TruthTable table = null;
-        if (Objects.equals(isLegal, "") && expression != null) {
+        final TruthTable table;
+        final EmptyResult result;
+        if (expression == null) {
+            result = new EmptyResult(new Status(500, isLegal));
+        }
+        else {
             table = new TruthTable(expression.toSetArray());
             log.debug("New table created: {}", table);
+            result = function.apply(expression, table);
         }
-        return table;
+
+        return result;
     }
 
+    @NotNull
     private Language setAndLogLanguage(@Nullable String lang, @NotNull String header) {
         log.info("ACCEPT_LANGUAGE header=" + header);
         Language language = setLanguage(lang, header);
@@ -181,7 +178,8 @@ public class ApiController { // TODO make sure it's thread-safe
         return language;
     }
 
-    private Language setLanguage(String language, @NotNull String header) {
+    @NotNull
+    private Language setLanguage(@Nullable String language, @NotNull String header) {
         final String headerLang = header.substring(0, 2);
         final List<String> norLangs = List.of("nb", "no", "nn");
 
