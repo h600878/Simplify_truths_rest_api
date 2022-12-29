@@ -286,7 +286,14 @@ public class ExpressionUtils {
                 brackets.push(charAtI);
             }
             else if (charAtI == ')' || charAtI == ']') {
-                char pop = brackets.pop();
+                char pop;
+                try {
+                    pop = brackets.pop();
+                }
+                catch (EmptyStackException e) {
+                    throw new MissingCharaterException(language, charAtI == ')' ? '(' : '[');
+                }
+
                 if (charAtI == ']') {
                     insideSquare = false;
                 }

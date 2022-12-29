@@ -84,6 +84,14 @@ public class ApiController { // TODO make sure it's thread-safe
             log.warn("Body is empty, exiting...");
             return new EmptyResult(Status.NOT_FOUND);
         }
+        try {
+            new ExpressionUtils(exp.toString().replace(" ", "")).isLegalExpression();
+        }
+        catch (IllegalCharacterException | MissingCharaterException | TooBigExpressionException e) {
+            log.warn("Expression is not legal, exiting...");
+            log.debug(Arrays.toString(e.getStackTrace()));
+            return new EmptyResult(new Status(500, e.getMessage()));
+        }
 
         final TruthTable table = new TruthTable(exp.toSetArray());
         log.debug("New table created: {}", table);
@@ -150,6 +158,7 @@ public class ApiController { // TODO make sure it's thread-safe
             eu.isLegalExpression();
         }
         catch (IllegalCharacterException | MissingCharaterException | TooBigExpressionException e) {
+            log.debug(Arrays.toString(e.getStackTrace()));
             isLegal = e.getMessage();
         }
 
