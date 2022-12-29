@@ -1,12 +1,12 @@
 package com.github.martials.utils;
 
 import com.github.martials.enums.Language;
+import com.github.martials.enums.Operator;
 import com.github.martials.exceptions.IllegalCharacterException;
 import com.github.martials.exceptions.MissingCharaterException;
 import com.github.martials.exceptions.TooBigExpressionException;
 import com.github.martials.expressions.CenterOperator;
 import com.github.martials.expressions.Expression;
-import com.github.martials.expressions.Operator;
 import com.github.martials.expressions.OrderOperations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -206,7 +206,7 @@ public class ExpressionUtils {
             if (i < stringExp.length()) {
                 // Finds the matching Operator
                 final Operator operator = Operator.getOperator(stringExp.charAt(i));
-                if (operator != null && !Objects.equals(operator, Operator.not)) {
+                if (operator != null && !Objects.equals(operator, Operator.NOT)) {
                     operators.add(new CenterOperator(operator, i));
                 }
             }
@@ -301,7 +301,7 @@ public class ExpressionUtils {
             if (i > 0 && !insideSquare) {
                 char prevChar = expression.charAt(i - 1);
 
-                if (Operator.not.getOperator() == charAtI) {
+                if (Operator.NOT.getOperator() == charAtI) {
                     if (!Operator.isOperator(prevChar) && prevChar != '(' || i == expression.length() - 1) {
                         throw new IllegalCharacterException(language, charAtI);
                     }

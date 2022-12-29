@@ -11,17 +11,15 @@ public class ResultOnlyTable extends EmptyResult {
 
     @NotNull
     protected final String expression;
-
+    protected final String[] header;
     @Nullable
     protected final TruthTable table;
-
-    protected final String[] header;
 
     public ResultOnlyTable(@NotNull Status status, @NotNull String expression, @Nullable String[] header, @Nullable TruthTable table) {
         super(status);
         this.expression = expression;
-        this.table = table;
         this.header = header;
+        this.table = table;
     }
 
     @NotNull
@@ -30,13 +28,13 @@ public class ResultOnlyTable extends EmptyResult {
     }
 
     @Nullable
-    public TruthTable getTable() {
-        return table;
+    public String[] getHeader() {
+        return header;
     }
 
     @Nullable
-    public String[] getHeader() {
-        return header;
+    public TruthTable getTable() {
+        return table;
     }
 
     @Override

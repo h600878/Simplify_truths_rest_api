@@ -1,6 +1,6 @@
 package com.github.martials.utils;
 
-import com.github.martials.expressions.Operator;
+import com.github.martials.enums.Operator;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class StringUtils {
@@ -42,7 +42,7 @@ public abstract class StringUtils {
     @NotNull
     private static String regex(@NotNull String exp, int start, int end) {
         if (start < end) {
-            for (var operator : Operator.getPredefined()) {
+            for (var operator : Operator.values()) {
                 final String endOfString = exp.substring(end);
                 final int startLength = exp.length();
 

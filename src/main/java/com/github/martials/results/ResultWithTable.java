@@ -13,26 +13,26 @@ import java.util.List;
 public class ResultWithTable extends Result {
 
     @Nullable
-    private final TruthTable table;
-    @Nullable
     private final String[] header;
+    @Nullable
+    private final TruthTable table;
 
     public ResultWithTable(@NotNull Status status, @NotNull String before, @NotNull String after,
                            @Nullable List<OrderOperations> orderOperations, @Nullable Expression expression,
                            @Nullable String[] header, @Nullable TruthTable table) {
         super(status, before, after, orderOperations, expression);
-        this.table = table;
         this.header = header;
-    }
-
-    @Nullable
-    public TruthTable getTable() {
-        return table;
+        this.table = table;
     }
 
     @Nullable
     public String[] getHeader() {
         return header;
+    }
+
+    @Nullable
+    public TruthTable getTable() {
+        return table;
     }
 
     @Override

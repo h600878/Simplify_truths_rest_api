@@ -1,7 +1,6 @@
 package com.github.martials.expressions;
 
-import org.jetbrains.annotations.NotNull;
+import com.github.martials.enums.Operator;
 
-public record CenterOperator(@NotNull Operator operator, int index) {
-
+public record CenterOperator(Operator operator, int index) {
 }

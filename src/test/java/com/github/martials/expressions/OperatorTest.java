@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.github.martials.enums.Operator;
+
 public class OperatorTest {
 
 
@@ -13,12 +15,12 @@ public class OperatorTest {
 
     @Test
     void getOperator() {
-        Assertions.assertEquals(Operator.and, Operator.getOperator("&"));
-        Assertions.assertEquals(Operator.and, Operator.getOperator('&'));
+        Assertions.assertEquals(Operator.AND, Operator.getOperator("&"));
+        Assertions.assertEquals(Operator.AND, Operator.getOperator('&'));
 
-        Assertions.assertEquals(Operator.or, Operator.getOperator('|'));
+        Assertions.assertEquals(Operator.OR, Operator.getOperator('|'));
 
-        Assertions.assertEquals(Operator.implication, Operator.getOperator("->"));
+        Assertions.assertEquals(Operator.IMPLICATION, Operator.getOperator("->"));
 
     }
 
@@ -29,7 +31,7 @@ public class OperatorTest {
         Assertions.assertTrue(Operator.isOperator('&'));
         Assertions.assertTrue(Operator.isOperator("&"));
 
-        for (Operator ops : Operator.getPredefined()) {
+        for (Operator ops : Operator.values()) {
             for (String s : ops.getValues()) {
                 Assertions.assertTrue(Operator.isOperator(s));
             }
@@ -41,10 +43,10 @@ public class OperatorTest {
 
     @Test
     void testEquals() {
-        Assertions.assertNotEquals(Operator.or, Operator.not);
-        Assertions.assertNotEquals(Operator.and, Operator.or);
-        Assertions.assertNotEquals(Operator.implication, Operator.and);
+        Assertions.assertNotEquals(Operator.OR, Operator.NOT);
+        Assertions.assertNotEquals(Operator.AND, Operator.OR);
+        Assertions.assertNotEquals(Operator.IMPLICATION, Operator.AND);
 
-        Assertions.assertEquals(Operator.or, Operator.or);
+        Assertions.assertEquals(Operator.OR, Operator.OR);
     }
 }
