@@ -48,4 +48,13 @@ public class Result extends EmptyResult {
         return expression;
     }
 
+    @Override
+    public String toString() {
+        return "Result{" +
+                "before='" + before + '\'' +
+                ", after='" + after + '\'' +
+                ", orderOperations=" + orderOperations +
+                ", expression=" + expression +
+                "} " + super.toString();
+    }
 }

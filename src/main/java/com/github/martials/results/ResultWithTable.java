@@ -7,6 +7,7 @@ import com.github.martials.expressions.TruthTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ResultWithTable extends Result {
@@ -34,4 +35,11 @@ public class ResultWithTable extends Result {
         return header;
     }
 
+    @Override
+    public String toString() {
+        return "ResultWithTable{" +
+                "header=" + Arrays.toString(header) +
+                ", table=" + table +
+                "} " + super.toString();
+    }
 }
