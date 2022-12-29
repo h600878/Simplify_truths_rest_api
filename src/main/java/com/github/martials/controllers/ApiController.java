@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @RestController
@@ -72,7 +71,7 @@ public class ApiController { // TODO make sure it's thread-safe
     @PostMapping("/table")
     @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/"})
     public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp,
-                             @RequestHeader(defaultValue = "defaultSort") final Sort sort,
+                             @RequestHeader(defaultValue = "DEFAULT") final Sort sort,
                              @RequestHeader(defaultValue = "NONE") final Hide hide,
                              @RequestHeader(required = false) @Nullable final String lang,
                              @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
@@ -89,7 +88,7 @@ public class ApiController { // TODO make sure it's thread-safe
         final TruthTable table = new TruthTable(exp.toSetArray());
         log.debug("New table created: {}", table);
 
-        final ResultOnlyTable result = new ResultOnlyTable(Status.OK, exp.toString(), table);
+        final ResultOnlyTable result = new ResultOnlyTable(Status.OK, exp.toString(), mapToStrings(table), table);
         log.debug("Result sent: {}", result);
 
         return result;
@@ -137,7 +136,9 @@ public class ApiController { // TODO make sure it's thread-safe
         if (table == null) {
             return null;
         }
-        return Arrays.stream(table.getExpressions()).map(Expression::toString).toArray(String[]::new);
+        return Arrays.stream(table.getExpressions())
+                .map(Expression::toString)
+                .toArray(String[]::new);
     }
 
     @NotNull
