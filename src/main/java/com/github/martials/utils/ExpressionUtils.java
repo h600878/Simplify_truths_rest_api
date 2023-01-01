@@ -120,7 +120,7 @@ public class ExpressionUtils {
         return exp;
     }
 
-    public static int getNumberOfUniqueAtomics(@NotNull Expression[] expressions) {
+    public static int getNumberOfUniqueAtomics(@NotNull Expression[] expressions) { // TODO use regex Pattern Match?
         int numberOfAtomics = 0;
 
         for (int i = 0; i < expressions.length; i++) {
@@ -234,37 +234,36 @@ public class ExpressionUtils {
      * More than one atomic value in a row.
      * Not operator prior to another different operator.
      * The parentheses do not match.
+     *
      * @throws IllegalCharacterException If the string contains an illegal character, or missplaced chacater
-     * @throws MissingCharaterException If the string is missing a character, or missing a parenthesis
+     * @throws MissingCharaterException  If the string is missing a character, or missing a parenthesis
      * @throws TooBigExpressionException If the expression has more than 10 parts
      */
     public void isLegalExpression() throws IllegalCharacterException, MissingCharaterException, TooBigExpressionException { // TODO Gonna need some cleaning, use regex!
         assert expression != null : "Expression cannot be null";
 
-        final Pattern regex = Pattern.compile("^[^a-zA-ZæøåÆØÅ0-9()⋁⋀➔¬\\[\\]]|]\\[|\\)\\[|\\)\\(|\\(\\)$");
+        final String atomicValues = "a-zA-ZæøåÆØÅ",
+                legalCharacters = atomicValues + "0-9\\(\\)⋁⋀➔¬\\[\\] ",
+                illegalRegex = "|] *\\[|\\) *\\[|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁]|[⋀⋁¬]$";
+        final Pattern regex = Pattern.compile("^[^" + legalCharacters + "]" + illegalRegex + "$");
         final Matcher matcher = regex.matcher(expression);
 
-        boolean isMatch = matcher.find();
-        if (isMatch) {
-            String match = matcher.group();
-            throw new IllegalCharacterException(language, match.charAt(0));
+        if (matcher.find()) {
+            throw new IllegalCharacterException(language, matcher.group().charAt(0));
+        }
+        else if (expression.length() == 0 || Pattern.compile("^[^" + atomicValues + "]$").matcher(expression).find()) {
+            throw new MissingCharaterException(language, 'A');
         }
 
-        Stack<Character> brackets = new Stack<>();
-        boolean isTruthValue = false, insideSquare = false;
+        final Stack<Character> brackets = new Stack<>();
+        boolean insideSquare = false;
         int numberOfOperators = 0;
 
         for (int i = 0; i < expression.length(); i++) {
             char charAtI = expression.charAt(i);
 
-            if (!insideSquare && Operator.isOperator(charAtI) && charAtI != '¬') {
-                if (i == 0) {
-                    throw new IllegalCharacterException(language, charAtI);
-                }
-                numberOfOperators++;
-                if (numberOfOperators > 9) {
-                    throw new TooBigExpressionException(language);
-                }
+            if (!insideSquare && Operator.isOperator(charAtI) && charAtI != '¬' && ++numberOfOperators > 9) {
+                throw new TooBigExpressionException(language);
             }
 
             if (charAtI == '(' || charAtI == '[') {
@@ -301,9 +300,6 @@ public class ExpressionUtils {
                     throw new IllegalCharacterException(language, charAtI);
                 }
             }
-            else if (!(Operator.isOperator(charAtI) || isParentheses(charAtI))) {
-                isTruthValue = true;
-            }
 
             if (i > 0 && !insideSquare) {
                 char prevChar = expression.charAt(i - 1);
@@ -315,25 +311,16 @@ public class ExpressionUtils {
                     continue;
                 }
 
-                // Throw if two operators are following eachother, but not ¬
-                if (Operator.isOperator(charAtI) &&
-                        (Operator.isOperator(prevChar) || prevChar == '(' || i == expression.length() - 1)) {
-                    throw new IllegalCharacterException(language, charAtI);
-                }
-                // Throw if two atomic values are following eachother
-                else if (!(charAtI == ']' || Operator.isOperator(charAtI) || Operator.isOperator(prevChar) ||
+                // Throw if two atomic values are following eachother // TODO allow
+                if (!(charAtI == ']' || Operator.isOperator(charAtI) || Operator.isOperator(prevChar) ||
                         isParentheses(charAtI) || isParentheses(prevChar))) {
                     throw new IllegalCharacterException(language, charAtI);
                 }
             }
         }
-        if (!isTruthValue) {
-            throw new MissingCharaterException(language, 'A');
-        }
         if (brackets.size() > 0) {
             throw new MissingCharaterException(language, brackets.pop() == '(' ? ')' : ']');
         }
-
     }
 
     private static boolean isParentheses(char c) {
