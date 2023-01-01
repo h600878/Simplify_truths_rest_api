@@ -11,25 +11,20 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 public class ExpressionUtilsTest {
 
-    ExpressionUtils eu;
+    private ExpressionUtils eu;
 
     @BeforeEach
     void setUp() {
         eu = new ExpressionUtils();
     }
 
-    @Test
-    void simplifyTest() {
+    @ParameterizedTest
+    @ValueSource(strings = {"A⋀B", "A⋁¬A", "A⋀B➔A", "A⋀¬A", "A⋀¬(A⋁B)", "¬¬A", "¬¬¬A"})
+    void simplifyTest(String value) {
 
         try {
             eu.setSimplify(false);
-            Assertions.assertNotNull(eu.simplify("A⋀B"));
-            Assertions.assertNotNull(eu.simplify("A⋁¬A"));
-            Assertions.assertNotNull(eu.simplify("A⋀B➔A"));
-            Assertions.assertNotNull(eu.simplify("A⋀¬A"));
-            Assertions.assertNotNull(eu.simplify("A⋀¬(A⋁B)"));
-            Assertions.assertNotNull(eu.simplify("¬¬A"));
-            Assertions.assertNotNull(eu.simplify("¬¬¬A"));
+            Assertions.assertNotNull(eu.simplify(value));
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -63,6 +58,12 @@ public class ExpressionUtilsTest {
     void throwsTooBigExpressionTest() {
         eu.setExpression("A⋀B⋀C⋀D⋀E⋀F⋀G⋀H⋀I⋀J⋀K");
         Assertions.assertThrows(TooBigExpressionException.class, eu::isLegalExpression);
+    }
+
+    @Test
+    void notTooBigExpressionTest() {
+        eu.setExpression("A⋀B⋀C⋀D⋀E⋀F⋀G⋀H⋀I⋀J");
+        Assertions.assertDoesNotThrow(eu::isLegalExpression);
     }
 
 }
