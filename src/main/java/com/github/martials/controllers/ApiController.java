@@ -40,7 +40,7 @@ public class ApiController { // TODO make sure it's thread-safe
      */
     @NotNull
     @GetMapping("/simplify")
-    @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/", "https://api.martials.no"})
+    @CrossOrigin(origins = {"http://localhost:8000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
     public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp,
                                 @RequestParam(required = false) @Nullable final String lang,
                                 @RequestParam(defaultValue = "true") final boolean simplify,
@@ -69,7 +69,7 @@ public class ApiController { // TODO make sure it's thread-safe
      */
     @NotNull
     @PostMapping("/table")
-    @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/", "https://api.martials.no"})
+    @CrossOrigin(origins = {"http://localhost:8000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
     public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp,
                              @RequestHeader(defaultValue = "DEFAULT") final Sort sort,
                              @RequestHeader(defaultValue = "NONE") final Hide hide,
@@ -107,7 +107,7 @@ public class ApiController { // TODO make sure it's thread-safe
      */
     @NotNull
     @GetMapping("/simplify/table")
-    @CrossOrigin(origins = {"http://localhost:8000", "https://h600878.github.io/", "https://api.martials.no"})
+    @CrossOrigin(origins = {"http://localhost:8000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
     public EmptyResult simplifyAndTable(@RequestParam(required = false) @Nullable final String exp,
                                         @RequestParam(required = false) @Nullable final String lang,
                                         @RequestParam(defaultValue = "true") final boolean simplify,
