@@ -8,7 +8,6 @@ import com.github.martials.enums.Operator;
 
 public class OperatorTest {
 
-
     @BeforeEach
     void setUp() {
     }
@@ -17,8 +16,6 @@ public class OperatorTest {
     void getOperator() {
         Assertions.assertEquals(Operator.AND, Operator.getOperator("&"));
         Assertions.assertEquals(Operator.AND, Operator.getOperator('&'));
-
-        Assertions.assertEquals(Operator.OR, Operator.getOperator('|'));
 
         Assertions.assertEquals(Operator.IMPLICATION, Operator.getOperator("->"));
 

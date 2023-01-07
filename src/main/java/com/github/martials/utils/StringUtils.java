@@ -3,6 +3,8 @@ package com.github.martials.utils;
 import com.github.martials.enums.Operator;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.regex.Pattern;
+
 public abstract class StringUtils {
 
     /**
@@ -24,17 +26,24 @@ public abstract class StringUtils {
     @NotNull
     public static String replaceOperators(@NotNull String exp) {
 
-        int startIndex = 0;
-
-        for (int i = 1; i < exp.length(); i++) {
-            if (exp.charAt(i) == '[') {
-                exp = regex(exp, startIndex, i);
-            }
-            else if (exp.charAt(i) == ']') {
-                startIndex = i + 1;
+        if (!Pattern.compile("\\[").matcher(exp).find()) {
+            for (Operator operator : Operator.values()) {
+                exp = exp.replaceAll(operator.getRegex().pattern(), operator.getOperator() + "");
             }
         }
-        exp = regex(exp, startIndex);
+        else {
+            int startIndex = 0;
+
+            for (int i = 1; i < exp.length(); i++) {
+                if (exp.charAt(i) == '[') {
+                    exp = regex(exp, startIndex, i);
+                }
+                else if (exp.charAt(i) == ']') {
+                    startIndex = i + 1;
+                }
+            }
+            exp = regex(exp, startIndex);
+        }
 
         return exp;
     }
@@ -42,7 +51,7 @@ public abstract class StringUtils {
     @NotNull
     private static String regex(@NotNull String exp, int start, int end) {
         if (start < end) {
-            for (var operator : Operator.values()) {
+            for (Operator operator : Operator.values()) {
                 final String endOfString = exp.substring(end);
                 final int startLength = exp.length();
 
