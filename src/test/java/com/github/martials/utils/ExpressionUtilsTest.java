@@ -56,7 +56,7 @@ public class ExpressionUtilsTest {
 
     @Test
     void throwsTooBigExpressionTest() {
-        eu.setExpression("A⋀B⋀C⋀D⋀E⋀F⋀G⋀H⋀I⋀J⋀K");
+        eu.setExpression("A⋀B⋀C⋀D⋀E⋀F⋀G⋀H⋀I⋀J⋀K⋀L⋀M⋀N⋀O⋀P");
         Assertions.assertThrows(TooBigExpressionException.class, eu::isLegalExpression);
     }
 
