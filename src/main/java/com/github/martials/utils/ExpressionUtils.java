@@ -23,6 +23,8 @@ public class ExpressionUtils {
     private boolean simplify;
     private final Language language;
 
+    private static final int MAX_EXPRESSION_SIZE = 15;
+
     public ExpressionUtils() {
         this(null);
     }
@@ -262,7 +264,7 @@ public class ExpressionUtils {
         for (int i = 0; i < expression.length(); i++) {
             char charAtI = expression.charAt(i);
 
-            if (!insideSquare && Operator.isOperator(charAtI) && charAtI != '¬' && ++numberOfOperators > 9) {
+            if (!insideSquare && Operator.isOperator(charAtI) && charAtI != '¬' && ++numberOfOperators > MAX_EXPRESSION_SIZE - 1) {
                 throw new TooBigExpressionException(language);
             }
 
