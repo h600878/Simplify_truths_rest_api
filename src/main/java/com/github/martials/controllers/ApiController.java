@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-// TODO remove "[" and "]" from legal charachters, as they are not allowed in url
+// TODO remove "[" and "]" from legal charachters, and allow input of entire words
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:8000", "http://localhost:3000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
@@ -220,12 +220,9 @@ public class ApiController { // TODO make sure it's thread-safe
 
     @NotNull
     private String replace(@NotNull String expression) {
-        String newExpression = expression.replace(" ", "");
-        log.debug("Whitespace removed in expression: {}", newExpression);
-
-        newExpression = StringUtils.replaceOperators(newExpression);
-        log.debug("Expression changed to: {}", newExpression);
-        return newExpression;
+        expression = StringUtils.replaceOperators(expression);
+        log.debug("Expression changed to: {}", expression);
+        return expression;
     }
 
 }

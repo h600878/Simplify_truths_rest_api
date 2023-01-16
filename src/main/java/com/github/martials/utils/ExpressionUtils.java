@@ -83,7 +83,6 @@ public class ExpressionUtils {
             return exp;
         }
 
-        // TODO move this above the basis?
         while (stringExp.charAt(0) == '¬' && isOuterParentheses(stringExp.substring(1))) {
             stringExp = stringExp.replace("¬", "");
             exp.appendLeading("¬");
@@ -97,6 +96,7 @@ public class ExpressionUtils {
             exp.appendTrailing(")");
         }
 
+        stringExp = stringExp.replaceAll(" ", "");
         CenterOperator center = getCenterOperatorIndex(stringExp);
 
         exp.setLeft(simplifyRec(stringExp.substring(0, center.index()), simplify)); // Left
@@ -245,8 +245,8 @@ public class ExpressionUtils {
         assert expression != null : "Expression cannot be null";
 
         final String atomicValues = "a-zA-ZæøåÆØÅ",
-                legalCharacters = atomicValues + "0-9\\(\\)⋁⋀➔¬\\[\\] ",
-                illegalRegex = "|] *\\[|\\) *\\[|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁]|[⋀⋁¬]$";
+                legalCharacters = atomicValues + "0-9\\(\\)⋁⋀➔¬ _-",
+                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁]|[⋀⋁¬]$";
         final Pattern regex = Pattern.compile("^[^" + legalCharacters + "]" + illegalRegex + "$");
         final Matcher matcher = regex.matcher(expression);
 
@@ -258,70 +258,47 @@ public class ExpressionUtils {
         }
 
         final Stack<Character> brackets = new Stack<>();
-        boolean insideSquare = false;
         int numberOfOperators = 0;
 
         for (int i = 0; i < expression.length(); i++) {
             char charAtI = expression.charAt(i);
 
-            if (!insideSquare && Operator.isOperator(charAtI) && charAtI != '¬' && ++numberOfOperators > MAX_EXPRESSION_SIZE - 1) {
+            if (Operator.isOperator(charAtI) && charAtI != '¬' && ++numberOfOperators > MAX_EXPRESSION_SIZE - 1) {
                 throw new TooBigExpressionException(language);
             }
 
-            if (charAtI == '(' || charAtI == '[') {
+            if (charAtI == '(') {
                 if (i > 0 && !Operator.isOperator(expression.charAt(i - 1)) && !isParentheses(expression.charAt(i - 1))) {
                     throw new IllegalCharacterException(language, charAtI);
                 }
-                if (charAtI == '[') {
-                    try {
-                        char top = brackets.pop();
-                        if (brackets.peek() == '[') {
-                            throw new IllegalCharacterException(language, charAtI);
-                        }
-                        brackets.push(top);
-                    }
-                    catch (EmptyStackException ignored) {
-                    }
-                    insideSquare = true;
-                }
                 brackets.push(charAtI);
             }
-            else if (charAtI == ')' || charAtI == ']') {
+            else if (charAtI == ')') {
                 char pop;
                 try {
                     pop = brackets.pop();
                 }
                 catch (EmptyStackException e) {
-                    throw new MissingCharaterException(language, charAtI == ')' ? '(' : '[');
+                    throw new MissingCharaterException(language, '(');
                 }
 
-                if (charAtI == ']') {
-                    insideSquare = false;
-                }
-                if (charAtI == ')' && pop != '(' || charAtI == ']' && pop != '[') {
+                if (pop != '(') {
                     throw new IllegalCharacterException(language, charAtI);
                 }
             }
 
-            if (i > 0 && !insideSquare) {
+            if (i > 0) {
                 char prevChar = expression.charAt(i - 1);
 
                 if (Operator.NOT.getOperator() == charAtI) {
                     if (!Operator.isOperator(prevChar) && prevChar != '(' || i == expression.length() - 1) {
                         throw new IllegalCharacterException(language, charAtI);
                     }
-                    continue;
-                }
-
-                // Throw if two atomic values are following eachother // TODO allow
-                if (!(charAtI == ']' || Operator.isOperator(charAtI) || Operator.isOperator(prevChar) ||
-                        isParentheses(charAtI) || isParentheses(prevChar))) {
-                    throw new IllegalCharacterException(language, charAtI);
                 }
             }
         }
         if (brackets.size() > 0) {
-            throw new MissingCharaterException(language, brackets.pop() == '(' ? ')' : ']');
+            throw new MissingCharaterException(language, ')');
         }
     }
 

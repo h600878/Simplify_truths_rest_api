@@ -8,8 +8,8 @@ import java.util.regex.Pattern;
 
 public enum Operator {
     IMPLICATION('➔', 0, new String[] {"->", "implication", "imp", "impliserer", "=>"}, Pattern.compile("->|=>|impliserer|implication|imp")),
-    OR('⋁', 1, new String[] {"or", "eller", "intersection", "snitt", "\\/"}, Pattern.compile("or|eller|intersection|snitt|\\/")),
-    AND('⋀', 2, new String[] {"&", "and", "og", "union", "/\\"}, Pattern.compile("&|and|og|union|/\\$")),
+    OR('⋁', 1, new String[] {"/", "or", "eller", "intersection", "snitt"}, Pattern.compile("/|or|eller|intersection|snitt")),
+    AND('⋀', 2, new String[] {"&", "and", "og", "union"}, Pattern.compile("&|and|og|union")),
     NOT('¬', 3, new String[] {"not", "ikke", "!", "~"}, Pattern.compile("[!~]|not|ikke"));
 
     private final char operator;

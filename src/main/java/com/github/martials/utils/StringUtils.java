@@ -3,7 +3,7 @@ package com.github.martials.utils;
 import com.github.martials.enums.Operator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.regex.Pattern;
+import java.util.List;
 
 public abstract class StringUtils {
 
@@ -26,23 +26,18 @@ public abstract class StringUtils {
     @NotNull
     public static String replaceOperators(@NotNull String exp) {
 
-        if (!Pattern.compile("\\[").matcher(exp).find()) {
-            for (Operator operator : Operator.values()) {
-                exp = exp.replaceAll(operator.getRegex().pattern(), operator.getOperator() + "");
-            }
-        }
-        else {
-            int startIndex = 0;
+        int startIndex = 0, endIndex = 0;
 
-            for (int i = 1; i < exp.length(); i++) {
-                if (exp.charAt(i) == '[') {
-                    exp = regex(exp, startIndex, i);
-                }
-                else if (exp.charAt(i) == ']') {
-                    startIndex = i + 1;
-                }
+        List<String> dividers = List.of(" ", "&", "/", "->", "=>");
+
+        while (startIndex != -1 && endIndex != -1) {
+            startIndex = exp.indexOf(" ", ++endIndex); // TODO check all the dividers
+
+            if (startIndex != -1) {
+                startIndex++;
+                endIndex = exp.indexOf(" ", startIndex);
+                exp = regex(exp, startIndex, endIndex);
             }
-            exp = regex(exp, startIndex);
         }
 
         return exp;
