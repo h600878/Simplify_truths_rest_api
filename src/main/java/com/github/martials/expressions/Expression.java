@@ -721,7 +721,7 @@ public class Expression {
     @Override
     public String toString() {
         if (isAtomic()) {
-            return leading + atomic;
+            return leading + capitalizeFirstLetter(atomic);
         }
         StringBuilder s = new StringBuilder(leading);
         if (left != null) {
@@ -735,5 +735,10 @@ public class Expression {
         }
         s.append(trailing);
         return s.toString();
+    }
+
+    @NotNull
+    private static String capitalizeFirstLetter(@NotNull String string) {
+        return string.substring(0, 1).toUpperCase() + string.substring(1);
     }
 }
