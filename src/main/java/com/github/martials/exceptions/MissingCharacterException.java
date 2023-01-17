@@ -2,16 +2,16 @@ package com.github.martials.exceptions;
 
 import com.github.martials.enums.Language;
 
-public class MissingCharaterException extends RuntimeException {
+public class MissingCharacterException extends RuntimeException {
 
     private static final String englishMessage = "Missing character";
     private static final String norwegianMessage = "Mangler tegn";
 
-    public MissingCharaterException(Language language, char c) {
+    public MissingCharacterException(Language language, char c) {
         super((language == Language.ENGLISH ? englishMessage : norwegianMessage) + " '" + c + "'");
     }
 
-    public MissingCharaterException() {
+    public MissingCharacterException() {
         super(englishMessage);
     }
 
