@@ -4,23 +4,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public enum Operator {
-    IMPLICATION('➔', 0, new String[] {"->", "implication", "imp", "impliserer", "=>"}, Pattern.compile("->|=>|impliserer|implication|imp")),
-    OR('⋁', 1, new String[] {"/", "or", "eller", "intersection", "snitt"}, Pattern.compile("/|or|eller|intersection|snitt")),
-    AND('⋀', 2, new String[] {"&", "and", "og", "union"}, Pattern.compile("&|and|og|union")),
-    NOT('¬', 3, new String[] {"not", "ikke", "!", "~"}, Pattern.compile("[!~]|not|ikke"));
+    IMPLICATION('➔', 0, Pattern.compile("->")),
+    OR('⋁', 1, Pattern.compile("/")),
+    AND('⋀', 2, Pattern.compile("&")),
+    NOT('¬', 3, Pattern.compile("!"));
 
     private final char operator;
     private final int weight;
-    private final String[] values; // TODO remove and use regex
     private final Pattern regex;
 
-    Operator(char operator, int weight, String[] values, Pattern regex) {
+    Operator(char operator, int weight, Pattern regex) {
         this.operator = operator;
         this.weight = weight;
-        this.values = values;
         this.regex = regex;
     }
 
@@ -31,10 +30,9 @@ public enum Operator {
 
     @Nullable
     public static Operator getOperator(@NotNull String operator) {
-        for (Operator value : values()) {
-            final boolean inArray = Arrays.asList(value.getValues()).contains(operator);
-            if (operator.equals(Character.toString(value.operator)) || inArray) {
-                return value;
+        for (Operator op : values()) {
+            if (operator.matches(op.regex.pattern()) || Objects.equals(operator, op.operator + "")) {
+                return op;
             }
         }
         return null;
@@ -57,9 +55,7 @@ public enum Operator {
      * @return True if the string is used to represent an operator
      */
     public static boolean isOperator(@NotNull String op) {
-        return Arrays.stream(values())
-                .anyMatch(operator -> op.equals(Character.toString(operator.operator)) ||
-                        Arrays.asList(operator.values).contains(op));
+        return Arrays.stream(Operator.values()).anyMatch(operator -> op.matches(operator.regex.pattern()) || operator.operator == op.charAt(0));
     }
 
     public char getOperator() {
@@ -68,10 +64,6 @@ public enum Operator {
 
     public int getWeight() {
         return weight;
-    }
-
-    public String[] getValues() {
-        return values;
     }
 
     public Pattern getRegex() {
