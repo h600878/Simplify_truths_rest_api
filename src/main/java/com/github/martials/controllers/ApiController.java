@@ -5,7 +5,7 @@ import com.github.martials.enums.Hide;
 import com.github.martials.enums.Language;
 import com.github.martials.enums.Sort;
 import com.github.martials.exceptions.IllegalCharacterException;
-import com.github.martials.exceptions.MissingCharaterException;
+import com.github.martials.exceptions.MissingCharacterException;
 import com.github.martials.exceptions.TooBigExpressionException;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.TruthTable;
@@ -26,8 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-// TODO remove "[" and "]" from legal charachters, and allow input of entire words
-
 @RestController
 @CrossOrigin(origins = {"http://localhost:8000", "http://localhost:3000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
 public class ApiController { // TODO make sure it's thread-safe
@@ -46,6 +44,7 @@ public class ApiController { // TODO make sure it's thread-safe
     public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp,
                                 @RequestParam(required = false) @Nullable final String lang,
                                 @RequestParam(defaultValue = "true") final boolean simplify,
+                                @RequestParam(defaultValue = "false") final boolean caseSensitive,
                                 @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
@@ -57,7 +56,7 @@ public class ApiController { // TODO make sure it's thread-safe
             return new EmptyResult(Status.NOT_FOUND);
         }
 
-        final String newExpression = replace(exp);
+        final String newExpression = replace(exp, caseSensitive);
         final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
 
         final EmptyResult result = simplifyIfLegal(eu, expression -> new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression));
@@ -88,7 +87,7 @@ public class ApiController { // TODO make sure it's thread-safe
         try {
             new ExpressionUtils(exp.toString().replace(" ", "")).isLegalExpression();
         }
-        catch (IllegalCharacterException | MissingCharaterException | TooBigExpressionException e) {
+        catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
             log.warn("Expression is not legal, exiting...");
             log.debug(Arrays.toString(e.getStackTrace()));
             return new EmptyResult(new Status(500, e.getMessage()));
@@ -111,6 +110,7 @@ public class ApiController { // TODO make sure it's thread-safe
     public EmptyResult simplifyAndTable(@RequestParam(required = false) @Nullable final String exp,
                                         @RequestParam(required = false) @Nullable final String lang,
                                         @RequestParam(defaultValue = "true") final boolean simplify,
+                                        @RequestParam(defaultValue = "false") final boolean caseSensitive,
                                         @RequestParam(defaultValue = "DEFAULT") final Sort sort,
                                         @RequestParam(defaultValue = "NONE") final Hide hide,
                                         @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
@@ -125,7 +125,7 @@ public class ApiController { // TODO make sure it's thread-safe
             return new EmptyResult(Status.NOT_FOUND);
         }
 
-        final String newExpression = replace(exp);
+        final String newExpression = replace(exp, caseSensitive);
         final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
 
         final EmptyResult result = simplifyIfLegal(eu, expression -> {
@@ -157,7 +157,7 @@ public class ApiController { // TODO make sure it's thread-safe
         try {
             eu.isLegalExpression();
         }
-        catch (IllegalCharacterException | MissingCharaterException | TooBigExpressionException e) {
+        catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
             log.debug(Arrays.toString(e.getStackTrace()));
             isLegal = e.getMessage();
         }
@@ -219,10 +219,18 @@ public class ApiController { // TODO make sure it's thread-safe
     }
 
     @NotNull
-    private String replace(@NotNull String expression) {
-        expression = StringUtils.replaceOperators(expression);
-        log.debug("Expression changed to: {}", expression);
-        return expression;
+    private String replace(@NotNull String expression, boolean caseSensitive) {
+        String newExpression = expression.replace(" ", "");
+        log.debug("Whitespace removed in expression: {}", newExpression);
+
+        if (!caseSensitive) {
+            newExpression = newExpression.toLowerCase();
+            log.debug("Expression converted to lowercase: {}", newExpression);
+        }
+
+        newExpression = StringUtils.replaceOperators(newExpression);
+        log.debug("Expression changed to: {}", newExpression);
+        return newExpression;
     }
 
 }
