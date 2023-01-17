@@ -3,8 +3,6 @@ package com.github.martials.utils;
 import com.github.martials.enums.Operator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public abstract class StringUtils {
 
     /**
@@ -26,45 +24,10 @@ public abstract class StringUtils {
     @NotNull
     public static String replaceOperators(@NotNull String exp) {
 
-        int startIndex = 0, endIndex = 0;
-
-        List<String> dividers = List.of(" ", "&", "/", "->", "=>");
-
-        while (startIndex != -1 && endIndex != -1) {
-            startIndex = exp.indexOf(" ", ++endIndex); // TODO check all the dividers
-
-            if (startIndex != -1) {
-                startIndex++;
-                endIndex = exp.indexOf(" ", startIndex);
-                exp = regex(exp, startIndex, endIndex);
-            }
-        }
-
-        return exp;
-    }
-
-    @NotNull
-    private static String regex(@NotNull String exp, int start, int end) {
-        if (start < end) {
-            for (Operator operator : Operator.values()) {
-                final String endOfString = exp.substring(end);
-                final int startLength = exp.length();
-
-                exp = exp.substring(0, start) +
-                        exp.substring(start, end).replaceAll(operator.getRegex().pattern(),
-                                Character.toString(operator.getOperator())) +
-                        endOfString;
-
-                // Subtracts the difference
-                end -= Math.abs(startLength - exp.length());
-            }
+        for (Operator op : Operator.values()) {
+            exp = exp.replaceAll(op.getRegex().pattern(), op.getOperator() + "");
         }
         return exp;
-    }
-
-    @NotNull
-    private static String regex(@NotNull String exp, int start) {
-        return regex(exp, start, exp.length());
     }
 
 }

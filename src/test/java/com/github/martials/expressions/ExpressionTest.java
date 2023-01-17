@@ -21,9 +21,9 @@ public class ExpressionTest {
 
     @BeforeEach
     void setup() {
-        alwaysTrue1 = new ExpressionUtils("A⋁¬A", false).simplify();
-        alwaysTrue2 = new ExpressionUtils("A⋀B➔A", false).simplify();
-        alwaysFalse1 = new ExpressionUtils("A⋀¬A", false).simplify();
+        alwaysTrue1 = new ExpressionUtils("Ape⋁¬Ape", false).simplify();
+        alwaysTrue2 = new ExpressionUtils("Ape⋀Banana➔Ape", false).simplify();
+        alwaysFalse1 = new ExpressionUtils("Ape⋀¬Ape", false).simplify();
         alwaysFalse2 = new ExpressionUtils("A⋀¬(A⋁B)", false).simplify();
         doubleInverse = new ExpressionUtils("¬¬A", false).simplify();
         tripleInverse = new ExpressionUtils("¬¬¬A", false).simplify();
@@ -192,9 +192,9 @@ public class ExpressionTest {
 
     @Test
     void testToString() {
-        Assertions.assertEquals("A ⋁ ¬A", alwaysTrue1.toString());
-        Assertions.assertEquals("A ⋀ B ➔ A", alwaysTrue2.toString());
-        Assertions.assertEquals("A ⋀ ¬A", alwaysFalse1.toString());
+        Assertions.assertEquals("Ape ⋁ ¬Ape", alwaysTrue1.toString());
+        Assertions.assertEquals("Ape ⋀ Banana ➔ Ape", alwaysTrue2.toString());
+        Assertions.assertEquals("Ape ⋀ ¬Ape", alwaysFalse1.toString());
         Assertions.assertEquals("A ⋀ ¬(A ⋁ B)", alwaysFalse2.toString());
         Assertions.assertEquals("¬¬¬¬¬A", fiveInverse.toString());
     }

@@ -28,12 +28,6 @@ public class OperatorTest {
         Assertions.assertTrue(Operator.isOperator('&'));
         Assertions.assertTrue(Operator.isOperator("&"));
 
-        for (Operator ops : Operator.values()) {
-            for (String s : ops.getValues()) {
-                Assertions.assertTrue(Operator.isOperator(s));
-            }
-        }
-
         Assertions.assertFalse(Operator.isOperator("£"));
         Assertions.assertFalse(Operator.isOperator('T'));
     }

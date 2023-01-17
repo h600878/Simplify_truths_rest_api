@@ -3,7 +3,7 @@ package com.github.martials.utils;
 import com.github.martials.enums.Language;
 import com.github.martials.enums.Operator;
 import com.github.martials.exceptions.IllegalCharacterException;
-import com.github.martials.exceptions.MissingCharaterException;
+import com.github.martials.exceptions.MissingCharacterException;
 import com.github.martials.exceptions.TooBigExpressionException;
 import com.github.martials.expressions.CenterOperator;
 import com.github.martials.expressions.Expression;
@@ -144,35 +144,7 @@ public class ExpressionUtils {
     }
 
     private boolean isAtomic(@NotNull String exp) {
-
-        if (!exp.matches("^.*[⋁⋀➔].*$")) {
-            return true;
-        }
-
-        final Pattern regex = Pattern.compile("^[a-zA-ZæøåÆØÅ0-9\\[\\]]$");
-        boolean atomic = regex.matcher(exp).matches();
-        int nrOfAtomics = 0;
-        boolean isSquareBracket = false;
-
-        for (int i = 0; atomic && i < exp.length(); i++) {
-            if (exp.charAt(i) == '[') {
-                isSquareBracket = true;
-            }
-            else if (exp.charAt(i) == ']') {
-                nrOfAtomics++;
-                isSquareBracket = false;
-                if (nrOfAtomics > 1) {
-                    atomic = false;
-                }
-            }
-            else if (regex.matcher(Character.toString(exp.charAt(i))).matches() && !isSquareBracket) {
-                nrOfAtomics++;
-                if (nrOfAtomics > 1) {
-                    atomic = false;
-                }
-            }
-        }
-        return atomic;
+        return !exp.matches("^.*[⋁⋀➔].*$");
     }
 
     /**
@@ -194,12 +166,12 @@ public class ExpressionUtils {
 
             // Skips all lines within parenthesis
             char c = stringExp.charAt(i);
-            while (c == '(' || c == '[' || parentheses > 0) {
+            while (c == '(' || parentheses > 0) {
                 c = stringExp.charAt(i);
-                if (c == '(' || c == '[') {
+                if (c == '(') {
                     parentheses++;
                 }
-                else if (c == ')' || c == ']') {
+                else if (c == ')') {
                     parentheses--;
                 }
                 i++;
@@ -238,23 +210,23 @@ public class ExpressionUtils {
      * The parentheses do not match.
      *
      * @throws IllegalCharacterException If the string contains an illegal character, or missplaced chacater
-     * @throws MissingCharaterException  If the string is missing a character, or missing a parenthesis
+     * @throws MissingCharacterException  If the string is missing a character, or missing a parenthesis
      * @throws TooBigExpressionException If the expression has more than 10 parts
      */
-    public void isLegalExpression() throws IllegalCharacterException, MissingCharaterException, TooBigExpressionException { // TODO Gonna need some cleaning, use regex!
+    public void isLegalExpression() throws IllegalCharacterException, MissingCharacterException, TooBigExpressionException { // TODO Gonna need some cleaning, use regex!
         assert expression != null : "Expression cannot be null";
 
         final String atomicValues = "a-zA-ZæøåÆØÅ",
                 legalCharacters = atomicValues + "0-9\\(\\)⋁⋀➔¬ _-",
-                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁]|[⋀⋁¬]$";
-        final Pattern regex = Pattern.compile("^[^" + legalCharacters + "]" + illegalRegex + "$");
+                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁]|[⋀⋁¬]$|[" + atomicValues + "] +[" + atomicValues + "]";
+        final Pattern regex = Pattern.compile("[^" + legalCharacters + "]" + illegalRegex);
         final Matcher matcher = regex.matcher(expression);
 
         if (matcher.find()) {
             throw new IllegalCharacterException(language, matcher.group().charAt(0));
         }
         else if (expression.length() == 0 || Pattern.compile("^[^" + atomicValues + "]$").matcher(expression).find()) {
-            throw new MissingCharaterException(language, 'A');
+            throw new MissingCharacterException(language, 'A');
         }
 
         final Stack<Character> brackets = new Stack<>();
@@ -263,7 +235,7 @@ public class ExpressionUtils {
         for (int i = 0; i < expression.length(); i++) {
             char charAtI = expression.charAt(i);
 
-            if (Operator.isOperator(charAtI) && charAtI != '¬' && ++numberOfOperators > MAX_EXPRESSION_SIZE - 1) {
+            if (Operator.isOperator(charAtI) && charAtI != Operator.NOT.getOperator() && ++numberOfOperators > MAX_EXPRESSION_SIZE - 1) {
                 throw new TooBigExpressionException(language);
             }
 
@@ -279,7 +251,7 @@ public class ExpressionUtils {
                     pop = brackets.pop();
                 }
                 catch (EmptyStackException e) {
-                    throw new MissingCharaterException(language, '(');
+                    throw new MissingCharacterException(language, '(');
                 }
 
                 if (pop != '(') {
@@ -298,7 +270,7 @@ public class ExpressionUtils {
             }
         }
         if (brackets.size() > 0) {
-            throw new MissingCharaterException(language, ')');
+            throw new MissingCharacterException(language, ')');
         }
     }
 
@@ -315,7 +287,7 @@ public class ExpressionUtils {
         boolean is = false;
         int index = 0;
 
-        while (stringExp.charAt(index) == '¬') {
+        while (stringExp.charAt(index) == Operator.NOT.getOperator()) {
             index++;
         }
 

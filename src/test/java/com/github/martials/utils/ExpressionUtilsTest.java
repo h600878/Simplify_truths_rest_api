@@ -1,7 +1,7 @@
 package com.github.martials.utils;
 
 import com.github.martials.exceptions.IllegalCharacterException;
-import com.github.martials.exceptions.MissingCharaterException;
+import com.github.martials.exceptions.MissingCharacterException;
 import com.github.martials.exceptions.TooBigExpressionException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,7 @@ public class ExpressionUtilsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"A⋀B", "A⋁¬A", "A⋀B➔A", "A⋀¬A", "A⋀¬(A⋁B)", "¬¬A", "¬¬¬A"})
+    @ValueSource(strings = {"A⋀B", "A⋁¬A", "A⋀B➔A", "A⋀¬A", "A⋀¬(A⋁B)", "¬¬A", "¬¬¬A", "Hello⋀World", "First⋀Second⋁Third"})
     void simplifyTest(String value) {
 
         try {
@@ -34,24 +34,24 @@ public class ExpressionUtilsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"A", "[Hello]", "Å", "[Hello]⋀[World]"})
+    @ValueSource(strings = {"A", "Hello", "Å", "Hello ⋀ World"})
     void isLegalExpressionTest(String value) {
         eu.setExpression(value);
         Assertions.assertDoesNotThrow(eu::isLegalExpression);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"#", "⋁", "AB", "A⋁⋀", "A(", "A[", "A⋀(B]", "A⋀()", "A¬B", "(A⋀B)(B⋀C)", "[Hello][World]"})
+    @ValueSource(strings = {"#", "[", "⋁", "A B", "A⋁⋀", "A(", "A[", "A⋀()", "A¬B", "(A⋀B)(B⋀C)", "Hello World", "TEst a"})
     void throwsIllegalCharExpressionTest(String value) {
         eu.setExpression(value);
         Assertions.assertThrows(IllegalCharacterException.class, eu::isLegalExpression);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "[A", "(A"})
+    @ValueSource(strings = {"", "(A", "A⋀(B"})
     void throwsMissingCharExpressionTest(String value) {
         eu.setExpression(value);
-        Assertions.assertThrows(MissingCharaterException.class, eu::isLegalExpression);
+        Assertions.assertThrows(MissingCharacterException.class, eu::isLegalExpression);
     }
 
     @Test
