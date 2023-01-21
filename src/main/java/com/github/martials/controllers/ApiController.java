@@ -220,17 +220,14 @@ public class ApiController { // TODO make sure it's thread-safe
 
     @NotNull
     private String replace(@NotNull String expression, boolean caseSensitive) {
-        String newExpression = expression.replace(" ", "");
-        log.debug("Whitespace removed in expression: {}", newExpression);
-
         if (!caseSensitive) {
-            newExpression = newExpression.toLowerCase();
-            log.debug("Expression converted to lowercase: {}", newExpression);
+            expression = expression.toLowerCase();
+            log.debug("Expression converted to lowercase: {}", expression);
         }
 
-        newExpression = StringUtils.replaceOperators(newExpression);
-        log.debug("Expression changed to: {}", newExpression);
-        return newExpression;
+        expression = StringUtils.replaceOperators(expression);
+        log.debug("Expression changed to: {}", expression);
+        return expression;
     }
 
 }

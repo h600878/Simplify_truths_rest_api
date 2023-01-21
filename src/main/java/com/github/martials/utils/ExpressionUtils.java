@@ -1,5 +1,6 @@
 package com.github.martials.utils;
 
+import com.github.martials.controllers.ApiController;
 import com.github.martials.enums.Language;
 import com.github.martials.enums.Operator;
 import com.github.martials.exceptions.IllegalCharacterException;
@@ -10,6 +11,8 @@ import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.OrderOperations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -24,6 +27,8 @@ public class ExpressionUtils {
     private final Language language;
 
     private static final int MAX_EXPRESSION_SIZE = 15;
+
+    private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
     public ExpressionUtils() {
         this(null);
@@ -54,6 +59,7 @@ public class ExpressionUtils {
     public Expression simplify() {
         assert expression != null : "Expression cannot be null";
 
+        log.debug("Simplifying expression: {}", expression);
         final Expression exp = simplifyRec(expression, simplify);
         if (!exp.getLeading().contains("¬")) {
             exp.setLeading("");
@@ -210,7 +216,7 @@ public class ExpressionUtils {
      * The parentheses do not match.
      *
      * @throws IllegalCharacterException If the string contains an illegal character, or missplaced chacater
-     * @throws MissingCharacterException  If the string is missing a character, or missing a parenthesis
+     * @throws MissingCharacterException If the string is missing a character, or missing a parenthesis
      * @throws TooBigExpressionException If the expression has more than 10 parts
      */
     public void isLegalExpression() throws IllegalCharacterException, MissingCharacterException, TooBigExpressionException { // TODO Gonna need some cleaning, use regex!
@@ -218,9 +224,11 @@ public class ExpressionUtils {
 
         final String atomicValues = "a-zA-ZæøåÆØÅ",
                 legalCharacters = atomicValues + "0-9\\(\\)⋁⋀➔¬ _=-",
-                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁]|[⋀⋁¬]$|[" + atomicValues + "] +[" + atomicValues + "]";
+                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁➔]|[⋀⋁➔¬]$|[" + atomicValues + "] +[" + atomicValues + "]";
         final Pattern regex = Pattern.compile("[^" + legalCharacters + "]" + illegalRegex);
         final Matcher matcher = regex.matcher(expression);
+
+        removeWhiteSpace();
 
         if (matcher.find()) {
             throw new IllegalCharacterException(language, matcher.group().charAt(0));
@@ -272,6 +280,11 @@ public class ExpressionUtils {
         if (brackets.size() > 0) {
             throw new MissingCharacterException(language, ')');
         }
+    }
+
+    private void removeWhiteSpace() {
+        expression = expression.replaceAll(" ", "");
+        log.info("Removed whitespace from expression, {}", expression);
     }
 
     private static boolean isParentheses(char c) {
