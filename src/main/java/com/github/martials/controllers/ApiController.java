@@ -128,6 +128,7 @@ public class ApiController { // TODO make sure it's thread-safe
         final String newExpression = replace(exp, caseSensitive);
         final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
 
+        final long startTime = System.currentTimeMillis();
         final EmptyResult result = simplifyIfLegal(eu, expression -> {
 
             TruthTable table = new TruthTable(expression.toSetArray(), hide, sort);
@@ -135,6 +136,8 @@ public class ApiController { // TODO make sure it's thread-safe
             return new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),
                     expression, mapToStrings(table), table);
         });
+
+        log.info("Expression simplified in: " + (System.currentTimeMillis() - startTime) + "ms");
 
         log.debug("Result sent: {}", result);
         return result;
