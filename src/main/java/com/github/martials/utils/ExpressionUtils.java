@@ -24,6 +24,7 @@ public class ExpressionUtils {
     private final List<OrderOperations> operations;
     private String expression;
     private boolean simplify;
+    private final boolean caseSensitive;
     private final Language language;
 
     private static final int MAX_EXPRESSION_SIZE = 15;
@@ -43,10 +44,15 @@ public class ExpressionUtils {
     }
 
     public ExpressionUtils(@Nullable String expression, boolean simplify, Language language) {
+        this(expression, simplify, language, false);
+    }
+
+    public ExpressionUtils(@Nullable String expression, boolean simplify, Language language, boolean caseSensitive) {
         operations = new ArrayList<>();
         this.expression = expression;
         this.simplify = simplify;
         this.language = language;
+        this.caseSensitive = caseSensitive;
     }
 
     @NotNull
@@ -72,6 +78,7 @@ public class ExpressionUtils {
     private Expression simplifyRec(@NotNull String stringExp, boolean simplify) {
 
         Expression exp = new Expression();
+        exp.setCaseSensitive(caseSensitive);
 
         // Basis
         if (isAtomic(stringExp)) {

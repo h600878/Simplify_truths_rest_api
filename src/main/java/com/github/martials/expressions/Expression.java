@@ -22,6 +22,8 @@ public class Expression {
     private String trailing;
     private String atomic;
 
+    private boolean caseSensitive;
+
     private final Logger log = LoggerFactory.getLogger(Expression.class);
 
     /**
@@ -32,7 +34,8 @@ public class Expression {
      * @param trailing Trailing content after the expression, like closing parentheses
      * @param atomic   The atomic value of the expression, if the expression is not atomic this is 'null'.
      */
-    public Expression(String leading, Expression left, Operator operator, Expression right, String trailing, String atomic) {
+    public Expression(String leading, Expression left, Operator operator, Expression right, String trailing, String atomic,
+                      boolean caseSensitive) {
         assert operator != Operator.NOT : "Operator cannot be 'not'.";
 
         this.leading = leading;
@@ -41,24 +44,25 @@ public class Expression {
         this.right = right;
         this.trailing = trailing;
         this.atomic = atomic;
+        this.caseSensitive = caseSensitive;
         log.debug("Expression created={}", this);
     }
 
     public Expression(Expression left, Operator operator, Expression right, String atomic) {
-        this("", left, operator, right, "", atomic);
+        this("", left, operator, right, "", atomic, false);
     }
 
     public Expression(Expression left, Operator operator, Expression right) {
-        this("", left, operator, right, "", null);
+        this("", left, operator, right, "", null, false);
     }
 
     public Expression(Expression left) {
-        this("", left, null, null, "", null);
+        this("", left, null, null, "", null, false);
 
     }
 
     public Expression() {
-        this("", null, null, null, "", null);
+        this("", null, null, null, "", null, false);
     }
 
     // TODO add weight to each Expression used to compare and sort, using the "value" of child Expressions, atomic uses string value
@@ -238,9 +242,9 @@ public class Expression {
         }
         // right.operator == or
         else if (this.right.noParentheses()) {
-                this.right.leading = "(";
-                this.right.trailing = ")";
-            }
+            this.right.leading = "(";
+            this.right.trailing = ")";
+        }
     }
 
     private boolean noParentheses() {
@@ -711,6 +715,10 @@ public class Expression {
         this.atomic = atomic;
     }
 
+    public void setCaseSensitive(boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
+    }
+
     /**
      * Returns a string representation of the expression
      * example: A & B | (¬C -> D)
@@ -721,7 +729,7 @@ public class Expression {
     @Override
     public String toString() {
         if (isAtomic()) {
-            return leading + capitalizeFirstLetter(atomic);
+            return leading + (!caseSensitive ? capitalizeFirstLetter(atomic) : atomic);
         }
         StringBuilder s = new StringBuilder(leading);
         if (left != null) {

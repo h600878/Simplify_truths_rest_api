@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
+// TODO allow all origins?
 @RestController
 @CrossOrigin(origins = {"http://localhost:8000", "http://localhost:3000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
 public class ApiController { // TODO make sure it's thread-safe
@@ -47,7 +48,8 @@ public class ApiController { // TODO make sure it's thread-safe
                                 @RequestParam(defaultValue = "false") final boolean caseSensitive,
                                 @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
-        log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify);
+        log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify,
+                ", caseSensitive=" + caseSensitive);
 
         Language language = setAndLogLanguage(lang, header);
 
@@ -57,7 +59,7 @@ public class ApiController { // TODO make sure it's thread-safe
         }
 
         final String newExpression = replace(exp, caseSensitive);
-        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
+        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language, caseSensitive);
 
         final EmptyResult result = simplifyIfLegal(eu, expression -> new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression));
 
@@ -76,7 +78,7 @@ public class ApiController { // TODO make sure it's thread-safe
                              @RequestHeader(required = false) @Nullable final String lang,
                              @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
-        log.info("GetMapping with the following parametres: exp={}, sort={}, hide={}, lang={}", exp, sort, hide, lang);
+        log.info("Table call with the following parametres: exp={}, sort={}, hide={}, lang={}", exp, sort, hide, lang);
 
         setAndLogLanguage(lang, header);
 
@@ -116,7 +118,7 @@ public class ApiController { // TODO make sure it's thread-safe
                                         @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
 
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
-                ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide);
+                ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide, ", caseSensitive=" + caseSensitive);
 
         Language language = setAndLogLanguage(lang, header);
 
@@ -126,7 +128,7 @@ public class ApiController { // TODO make sure it's thread-safe
         }
 
         final String newExpression = replace(exp, caseSensitive);
-        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language);
+        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language, caseSensitive);
 
         final long startTime = System.currentTimeMillis();
         final EmptyResult result = simplifyIfLegal(eu, expression -> {
