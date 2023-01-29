@@ -291,7 +291,7 @@ public class ExpressionUtils {
 
     private void removeWhiteSpace() {
         expression = expression.replaceAll(" ", "");
-        log.info("Removed whitespace from expression, {}", expression);
+        log.debug("Removed whitespace from expression, {}", expression);
     }
 
     private static boolean isParentheses(char c) {

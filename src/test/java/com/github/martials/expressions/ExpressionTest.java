@@ -17,7 +17,8 @@ public class ExpressionTest {
             notAandNotB, notAorNotB,
             aAndBorBandC, aOrBandBorC,
             parenthesesAandB,
-            wrongOrder;
+            wrongOrder,
+            notAAndNotCOrA;
 
     @BeforeEach
     void setup() {
@@ -39,6 +40,7 @@ public class ExpressionTest {
         aAndBorBandC = new ExpressionUtils("A⋀B⋁B⋀C", false).simplify();
         aOrBandBorC = new ExpressionUtils("(A⋁B)⋀(B⋁C)", false).simplify();
         wrongOrder = new ExpressionUtils("B⋁A", false).simplify();
+        notAAndNotCOrA = new ExpressionUtils("¬A⋀¬C⋁A", false).simplify();
     }
 
     @Test
@@ -86,6 +88,8 @@ public class ExpressionTest {
         Assertions.assertEquals("¬(A ⋁ B)", notAandNotB.toString());
         notAorNotB.deMorgansLaws();
         Assertions.assertEquals("¬(A ⋀ B)", notAorNotB.toString());
+        notAAndNotCOrA.getLeft().deMorgansLaws();
+        Assertions.assertEquals("¬(A ⋁ C) ⋁ A", notAAndNotCOrA.toString());
     }
 
     @Test
@@ -134,6 +138,15 @@ public class ExpressionTest {
         Assertions.assertEquals("¬A", aImpliesNotA.toString());
         aAndAOrA.absorptionLaw();
         Assertions.assertEquals("A", aAndAOrA.toString());
+        notAAndNotCOrA.absorptionLaw();
+        Assertions.assertEquals("¬C ⋁ A", notAAndNotCOrA.toString());
+    }
+
+    @Test
+    void absoptionLawAfterDeMorgan() {
+        notAAndNotCOrA.getLeft().deMorgansLaws();
+        notAAndNotCOrA.absorptionLaw();
+        Assertions.assertEquals("¬C ⋁ A", notAAndNotCOrA.toString());
     }
 
     @Test

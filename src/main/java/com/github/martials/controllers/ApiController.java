@@ -51,17 +51,15 @@ public class ApiController { // TODO make sure it's thread-safe
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify,
                 ", caseSensitive=" + caseSensitive);
 
-        Language language = setAndLogLanguage(lang, header);
-
-        if (exp == null) {
-            log.warn("Parametre exp is empty, exiting...");
+        final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
+        if (eu == null) {
             return new EmptyResult(Status.NOT_FOUND);
         }
+        assert exp != null;
 
-        final String newExpression = replace(exp, caseSensitive);
-        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language, caseSensitive);
-
+        final long startTime = System.currentTimeMillis();
         final EmptyResult result = simplifyIfLegal(eu, expression -> new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression));
+        log.info("Expression simplified in: " + (System.currentTimeMillis() - startTime) + "ms");
 
         log.debug("Result sent: {}", result);
         return result;
@@ -120,21 +118,17 @@ public class ApiController { // TODO make sure it's thread-safe
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
                 ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide, ", caseSensitive=" + caseSensitive);
 
-        Language language = setAndLogLanguage(lang, header);
-
-        if (exp == null) {
-            log.warn("Parametre exp is empty, exiting...");
+        final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
+        if (eu == null) {
             return new EmptyResult(Status.NOT_FOUND);
         }
-
-        final String newExpression = replace(exp, caseSensitive);
-        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language, caseSensitive);
 
         final long startTime = System.currentTimeMillis();
         final EmptyResult result = simplifyIfLegal(eu, expression -> {
 
             TruthTable table = new TruthTable(expression.toSetArray(), hide, sort);
             log.debug("New table created: {}", table);
+            assert exp != null;
             return new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),
                     expression, mapToStrings(table), table);
         });
@@ -143,6 +137,18 @@ public class ApiController { // TODO make sure it's thread-safe
 
         log.debug("Result sent: {}", result);
         return result;
+    }
+
+    private ExpressionUtils initiate(String exp, String lang, boolean simplify, boolean caseSensitive, String header) {
+        Language language = setAndLogLanguage(lang, header);
+
+        if (exp == null) {
+            log.warn("Parametre exp is empty, exiting...");
+            return null;
+        }
+
+        final String newExpression = replace(exp, caseSensitive);
+        return new ExpressionUtils(newExpression, simplify, language, caseSensitive);
     }
 
     private String[] mapToStrings(TruthTable table) {
