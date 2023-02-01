@@ -34,6 +34,10 @@ public class TruthTable {
 
     @NotNull
     public static boolean[][] helperMatrix(int numberOfAtomics) {
+        if (numberOfAtomics < 1) {
+            throw new IllegalArgumentException("Number of atomics must be greater than 0");
+        }
+
         final int powerToLength = (int) Math.pow(2, numberOfAtomics);
         final boolean[][] helperMatrix = new boolean[numberOfAtomics][powerToLength];
 
