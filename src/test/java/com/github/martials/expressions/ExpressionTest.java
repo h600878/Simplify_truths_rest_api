@@ -1,11 +1,12 @@
 package com.github.martials.expressions;
 
 import com.github.martials.utils.ExpressionUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ExpressionTest {
 
@@ -46,169 +47,166 @@ public class ExpressionTest {
     @Test
     void testEquals() {
 
-        Assertions.assertNotEquals(alwaysTrue1, alwaysTrue2);
-        Assertions.assertNotEquals(alwaysFalse1, alwaysFalse2);
+        assertNotEquals(alwaysTrue1, alwaysTrue2);
+        assertNotEquals(alwaysFalse1, alwaysFalse2);
 
-        Assertions.assertEquals(alwaysFalse1, alwaysFalse1);
+        assertEquals(alwaysFalse1, alwaysFalse1);
     }
 
     @Test
     void equalsAndOpposite() {
 
-        Assertions.assertFalse(alwaysTrue1.equalsAndOpposite(alwaysTrue2));
-        Assertions.assertFalse(alwaysFalse1.equalsAndOpposite(alwaysFalse1));
+        assertFalse(alwaysTrue1.equalsAndOpposite(alwaysTrue2));
+        assertFalse(alwaysFalse1.equalsAndOpposite(alwaysFalse1));
 
-        Assertions.assertTrue(alwaysTrue1.equalsAndOpposite(alwaysFalse1));
+        assertTrue(alwaysTrue1.equalsAndOpposite(alwaysFalse1));
     }
 
     @Test
     void removeParenthesis() {
         parenthesesAandB.removeParenthesis(new ArrayList<>());
-        Assertions.assertEquals("A ⋀ B", parenthesesAandB.toString());
+        assertEquals("A ⋀ B", parenthesesAandB.toString());
 
         notAandNotB.deMorgansLaws();
         notAandNotB.removeParenthesis(new ArrayList<>());
-        Assertions.assertEquals("¬(A ⋁ B)", notAandNotB.toString());
+        assertEquals("¬(A ⋁ B)", notAandNotB.toString());
         notAorNotB.deMorgansLaws();
         notAorNotB.removeParenthesis(new ArrayList<>());
-        Assertions.assertEquals("¬(A ⋀ B)", notAorNotB.toString());
+        assertEquals("¬(A ⋀ B)", notAorNotB.toString());
     }
 
     @Test
     void distributiveProperty() {
         aOrBandBorC.distributiveProperty();
-        Assertions.assertEquals("B ⋁ A ⋀ C", aOrBandBorC.toString());
+        assertEquals("B ⋁ A ⋀ C", aOrBandBorC.toString());
         aAndBorBandC.distributiveProperty();
-        Assertions.assertEquals("B ⋀ (A ⋁ C)", aAndBorBandC.toString());
+        assertEquals("B ⋀ (A ⋁ C)", aAndBorBandC.toString());
     }
 
     @Test
     void deMorgansLaws() {
         notAandNotB.deMorgansLaws();
-        Assertions.assertEquals("¬(A ⋁ B)", notAandNotB.toString());
+        assertEquals("¬(A ⋁ B)", notAandNotB.toString());
         notAorNotB.deMorgansLaws();
-        Assertions.assertEquals("¬(A ⋀ B)", notAorNotB.toString());
+        assertEquals("¬(A ⋀ B)", notAorNotB.toString());
         notAAndNotCOrA.getLeft().deMorgansLaws();
-        Assertions.assertEquals("¬(A ⋁ C) ⋁ A", notAAndNotCOrA.toString());
+        assertEquals("¬(A ⋁ C) ⋁ A", notAAndNotCOrA.toString());
     }
 
     @Test
     void isInverse() {
-        Assertions.assertFalse(doubleInverse.isInverse());
-        Assertions.assertTrue(tripleInverse.isInverse());
-        Assertions.assertFalse(quadInverse.isInverse());
-        Assertions.assertTrue(fiveInverse.isInverse());
-
-        doubleInverse.doubleNegation();
-        tripleInverse.doubleNegation();
-        quadInverse.doubleNegation();
-        fiveInverse.doubleNegation();
-
-        Assertions.assertFalse(doubleInverse.isInverse());
-        Assertions.assertTrue(tripleInverse.isInverse());
-        Assertions.assertFalse(quadInverse.isInverse());
-        Assertions.assertTrue(fiveInverse.isInverse());
+        assertTrue(tripleInverse.isInverse());
+        assertTrue(fiveInverse.isInverse());
     }
 
     @Test
-    void associativeProperty() {
-        Assertions.assertTrue(true);
+    void isNotInverse() {
+        assertFalse(doubleInverse.isInverse());
+        assertFalse(quadInverse.isInverse());
     }
 
     @Test
     void commutativeProperty() {
         wrongOrder.commutativeProperty(new ArrayList<>());
-        Assertions.assertEquals("A ⋁ B", wrongOrder.toString());
+        assertEquals("A ⋁ B", wrongOrder.toString());
     }
 
     @Test
     void eliminationOfImplication() {
         aImpliesNotA.eliminationOfImplication();
-        Assertions.assertEquals("¬A ⋁ ¬A", aImpliesNotA.toString());
+        assertEquals("¬A ⋁ ¬A", aImpliesNotA.toString());
     }
 
     @Test
     void absorptionLaw() {
         aAndA.absorptionLaw();
-        Assertions.assertEquals("A", aAndA.toString());
+        assertEquals("A", aAndA.toString());
         aOrA.absorptionLaw();
-        Assertions.assertEquals("A", aOrA.toString());
+        assertEquals("A", aOrA.toString());
         aImpliesNotA.eliminationOfImplication();
         aImpliesNotA.absorptionLaw();
-        Assertions.assertEquals("¬A", aImpliesNotA.toString());
+        assertEquals("¬A", aImpliesNotA.toString());
         aAndAOrA.absorptionLaw();
-        Assertions.assertEquals("A", aAndAOrA.toString());
+        assertEquals("A", aAndAOrA.toString());
         notAAndNotCOrA.absorptionLaw();
-        Assertions.assertEquals("¬C ⋁ A", notAAndNotCOrA.toString());
+        assertEquals("¬C ⋁ A", notAAndNotCOrA.toString());
     }
 
     @Test
     void absoptionLawAfterDeMorgan() {
         notAAndNotCOrA.getLeft().deMorgansLaws();
         notAAndNotCOrA.absorptionLaw();
-        Assertions.assertEquals("¬C ⋁ A", notAAndNotCOrA.toString());
+        assertEquals("¬C ⋁ A", notAAndNotCOrA.toString());
     }
 
     @Test
-    void doubleNegation() {
-        Assertions.assertEquals("¬¬", doubleInverse.getLeading());
-        Assertions.assertEquals("¬¬¬", tripleInverse.getLeading());
+    void evenNegation() {
+        doubleInverse.doubleNegation();
+        quadInverse.doubleNegation();
+        assertEquals("", doubleInverse.getLeading());
+        assertEquals("", quadInverse.getLeading());
+    }
 
-        try {
-            doubleInverse.doubleNegation();
-            tripleInverse.doubleNegation();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            Assertions.fail();
-        }
-
-        Assertions.assertEquals("", doubleInverse.getLeading());
-        Assertions.assertEquals("¬", tripleInverse.getLeading());
+    @Test
+    void oddNegation() {
+        tripleInverse.doubleNegation();
+        fiveInverse.doubleNegation();
+        assertEquals("¬", tripleInverse.getLeading());
+        assertEquals("¬", fiveInverse.getLeading());
     }
 
     @Test
     void getNumberOfAtomics() {
-        Assertions.assertEquals(2, alwaysTrue1.getNumberOfAtomics());
-        Assertions.assertEquals(3, alwaysTrue2.getNumberOfAtomics());
-        Assertions.assertEquals(1, fiveInverse.getNumberOfAtomics());
+        assertEquals(1, fiveInverse.getNumberOfAtomics());
+        assertEquals(2, alwaysTrue1.getNumberOfAtomics());
+        assertEquals(3, alwaysTrue2.getNumberOfAtomics());
     }
 
     @Test
-    void solve() {
-        final boolean[] left = new boolean[] {false, true};
-        final boolean[] right = new boolean[] {false, true};
+    void solveAlwaysTrue() {
+        final boolean[] booleans = new boolean[] {false, true};
 
-        for (boolean l : left) {
-            for (boolean r : right) {
-                Assertions.assertTrue(alwaysTrue1.solve(l, !l));
-                Assertions.assertTrue(alwaysTrue2.solve(l, l || r));
+        for (boolean l : booleans) {
+            for (boolean r : booleans) {
+                assertTrue(alwaysTrue1.solve(l, !l), "l: " + l + ", r: " + r);
+                assertTrue(alwaysTrue2.solve(l, l || r), "l: " + l + ", r: " + r);
             }
         }
-        Assertions.assertTrue(wrongOrder.solve(false, true));
-        Assertions.assertTrue(wrongOrder.solve(true, false));
+    }
 
-        Assertions.assertFalse(wrongOrder.solve(false, false));
+    @Test
+    void solveOneIsTrueIfOr() {
+        assertTrue(wrongOrder.solve(false, true));
+        assertTrue(wrongOrder.solve(true, false));
+    }
+
+    @Test
+    void solveNeitherTrue() {
+        assertFalse(wrongOrder.solve(false, false));
     }
 
     @Test
     void isAtomic() {
-        Assertions.assertFalse(alwaysTrue1.isAtomic());
-        Assertions.assertFalse(alwaysTrue2.isAtomic());
-        Assertions.assertFalse(alwaysFalse1.isAtomic());
-        Assertions.assertFalse(alwaysFalse2.isAtomic());
-        Assertions.assertTrue(doubleInverse.isAtomic());
-        Assertions.assertTrue(tripleInverse.isAtomic());
-        Assertions.assertTrue(quadInverse.isAtomic());
-        Assertions.assertTrue(fiveInverse.isAtomic());
+        assertFalse(alwaysTrue1.isAtomic());
+        assertFalse(alwaysTrue2.isAtomic());
+        assertFalse(alwaysFalse1.isAtomic());
+        assertFalse(alwaysFalse2.isAtomic());
+    }
+
+    @Test
+    void isNotAtomic() {
+        assertTrue(doubleInverse.isAtomic());
+        assertTrue(tripleInverse.isAtomic());
+        assertTrue(quadInverse.isAtomic());
+        assertTrue(fiveInverse.isAtomic());
     }
 
     @Test
     void testToString() {
-        Assertions.assertEquals("Ape ⋁ ¬Ape", alwaysTrue1.toString());
-        Assertions.assertEquals("Ape ⋀ Banana ➔ Ape", alwaysTrue2.toString());
-        Assertions.assertEquals("Ape ⋀ ¬Ape", alwaysFalse1.toString());
-        Assertions.assertEquals("A ⋀ ¬(A ⋁ B)", alwaysFalse2.toString());
-        Assertions.assertEquals("¬¬¬¬¬A", fiveInverse.toString());
+        assertEquals("Ape ⋁ ¬Ape", alwaysTrue1.toString());
+        assertEquals("Ape ⋀ Banana ➔ Ape", alwaysTrue2.toString());
+        assertEquals("Ape ⋀ ¬Ape", alwaysFalse1.toString());
+        assertEquals("A ⋀ ¬(A ⋁ B)", alwaysFalse2.toString());
+        assertEquals("¬¬¬¬¬A", fiveInverse.toString());
     }
 }

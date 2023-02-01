@@ -1,43 +1,77 @@
 package com.github.martials.expressions;
 
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import com.github.martials.enums.Operator;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class OperatorTest {
 
-    @BeforeEach
-    void setUp() {
+    @ParameterizedTest
+    @ValueSource(strings = {"&", "⋀"})
+    void getAndOperatorFromString(String operator) {
+        assertEquals(Operator.AND, Operator.getOperator(operator));
     }
 
-    @Test
-    void getOperator() {
-        Assertions.assertEquals(Operator.AND, Operator.getOperator("&"));
-        Assertions.assertEquals(Operator.AND, Operator.getOperator('&'));
-
-        Assertions.assertEquals(Operator.IMPLICATION, Operator.getOperator("->"));
-
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "⋁"})
+    void getOrOperatorFromString(String operator) {
+        assertEquals(Operator.OR, Operator.getOperator(operator));
     }
 
-    @Test
-    void isOperator() {
-        Assertions.assertTrue(Operator.isOperator('¬'));
-        Assertions.assertTrue(Operator.isOperator("¬"));
-        Assertions.assertTrue(Operator.isOperator('&'));
-        Assertions.assertTrue(Operator.isOperator("&"));
-
-        Assertions.assertFalse(Operator.isOperator("£"));
-        Assertions.assertFalse(Operator.isOperator('T'));
+    @ParameterizedTest
+    @ValueSource(strings = {"!", "¬"})
+    void getNotOperatorFromString(String operator) {
+        assertEquals(Operator.NOT, Operator.getOperator(operator));
     }
 
-    @Test
-    void testEquals() {
-        Assertions.assertNotEquals(Operator.OR, Operator.NOT);
-        Assertions.assertNotEquals(Operator.AND, Operator.OR);
-        Assertions.assertNotEquals(Operator.IMPLICATION, Operator.AND);
+    @ParameterizedTest
+    @ValueSource(strings = {"->", "➔"})
+    void getImplicationOperatorFromString(String operator) {
+        assertEquals(Operator.IMPLICATION, Operator.getOperator(operator));
+    }
 
-        Assertions.assertEquals(Operator.OR, Operator.OR);
+    @ParameterizedTest
+    @ValueSource(chars = {'&', '⋀'})
+    void getOperatorFromChar(char operator) {
+        assertEquals(Operator.AND, Operator.getOperator(operator));
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = {'/', '⋁'})
+    void getOrOperatorFromChar(char operator) {
+        assertEquals(Operator.OR, Operator.getOperator(operator));
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = {'!', '¬'})
+    void getNotOperatorFromChar(char operator) {
+        assertEquals(Operator.NOT, Operator.getOperator(operator));
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = {'➔'})
+    void getImplicationOperatorFromChar(char operator) {
+        assertEquals(Operator.IMPLICATION, Operator.getOperator(operator));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"&", "/", "!", "¬", "⋁", "⋀", "➔", "->"})
+    void isOperatorString(String operator) {
+        assertTrue(Operator.isOperator(operator), "Operator " + operator + " is not recognized");
+    }
+
+    @ParameterizedTest
+    @ValueSource(chars = {'&', '/', '!', '¬', '⋁', '⋀', '➔'})
+    void isOperatorString(char operator) {
+        assertTrue(Operator.isOperator(operator), "Operator " + operator + " is not recognized");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"£", "T", "|"})
+    void isNotOperatorString(String operator) {
+        assertFalse(Operator.isOperator(operator), "Operator " + operator + " is recognized");
     }
 }
