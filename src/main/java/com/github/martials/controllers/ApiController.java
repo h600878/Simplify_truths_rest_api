@@ -29,7 +29,7 @@ import java.util.function.Function;
 // TODO allow all origins?
 @RestController
 @CrossOrigin(origins = {"http://localhost:8000", "http://localhost:3000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
-public class ApiController { // TODO make sure it's thread-safe
+public final class ApiController { // TODO make sure it's thread-safe
 
     private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
@@ -139,6 +139,7 @@ public class ApiController { // TODO make sure it's thread-safe
         return result;
     }
 
+    @Nullable
     private ExpressionUtils initiate(String exp, String lang, boolean simplify, boolean caseSensitive, String header) {
         Language language = setAndLogLanguage(lang, header);
 
@@ -151,6 +152,7 @@ public class ApiController { // TODO make sure it's thread-safe
         return new ExpressionUtils(newExpression, simplify, language, caseSensitive);
     }
 
+    @Nullable
     private String[] mapToStrings(TruthTable table) {
         if (table == null) {
             return null;
@@ -174,21 +176,16 @@ public class ApiController { // TODO make sure it's thread-safe
         }
 
         final Expression expression;
+        final EmptyResult result;
+
         if (isLegal.equals("")) {
             expression = eu.simplify();
             log.debug("Expression simplified to: {}", expression);
+            result = function.apply(expression);
         }
         else {
             log.error("Expression is not legal: {}", isLegal);
-            expression = null;
-        }
-
-        final EmptyResult result;
-        if (expression == null) {
             result = new EmptyResult(new Status(500, isLegal));
-        }
-        else {
-            result = function.apply(expression);
         }
 
         return result;
