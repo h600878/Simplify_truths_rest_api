@@ -29,7 +29,7 @@ import java.util.function.Function;
 // TODO allow all origins?
 @RestController
 @CrossOrigin(origins = {"http://localhost:8000", "http://localhost:3000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
-public final class ApiController { // TODO make sure it's thread-safe
+public final class ApiController {
 
     private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
@@ -73,10 +73,11 @@ public final class ApiController { // TODO make sure it's thread-safe
     public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp,
                              @RequestHeader(defaultValue = "DEFAULT") final Sort sort,
                              @RequestHeader(defaultValue = "NONE") final Hide hide,
+                             @RequestHeader(defaultValue = "false") final boolean hideIntermediate,
                              @RequestHeader(required = false) @Nullable final String lang,
                              @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
-        log.info("Table call with the following parametres: exp={}, sort={}, hide={}, lang={}", exp, sort, hide, lang);
+        log.info("Table call with the following parametres: exp={}, sort={}, hide={}, hideIntermediate={}, lang={}", exp, sort, hide, hideIntermediate, lang);
 
         setAndLogLanguage(lang, header);
 
@@ -93,7 +94,7 @@ public final class ApiController { // TODO make sure it's thread-safe
             return new EmptyResult(new Status(500, e.getMessage()));
         }
 
-        final TruthTable table = new TruthTable(exp.toSetArray());
+        final TruthTable table = new TruthTable(exp.toSetArray(hideIntermediate));
         log.debug("New table created: {}", table);
 
         final ResultOnlyTable result = new ResultOnlyTable(Status.OK, exp.toString(), mapToStrings(table), table);
@@ -113,10 +114,11 @@ public final class ApiController { // TODO make sure it's thread-safe
                                         @RequestParam(defaultValue = "false") final boolean caseSensitive,
                                         @RequestParam(defaultValue = "DEFAULT") final Sort sort,
                                         @RequestParam(defaultValue = "NONE") final Hide hide,
+                                        @RequestParam(defaultValue = "false") final boolean hideIntermediate,
                                         @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
 
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
-                ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide, ", caseSensitive=" + caseSensitive);
+                ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide + ", hideIntermediate=" + hideIntermediate + ", caseSensitive=" + caseSensitive);
 
         final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
         if (eu == null) {
@@ -126,7 +128,7 @@ public final class ApiController { // TODO make sure it's thread-safe
         final long startTime = System.currentTimeMillis();
         final EmptyResult result = simplifyIfLegal(eu, expression -> {
 
-            TruthTable table = new TruthTable(expression.toSetArray(), hide, sort);
+            TruthTable table = new TruthTable(expression.toSetArray(hideIntermediate), hide, sort);
             log.debug("New table created: {}", table);
             assert exp != null;
             return new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),

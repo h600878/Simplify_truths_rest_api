@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Sort;
 import com.github.martials.utils.ExpressionUtils;
-import com.github.martials.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -22,14 +22,6 @@ public class TruthTable {
 
     public TruthTable(@NotNull Expression[] expressions) {
         this(expressions, Hide.NONE, Sort.DEFAULT);
-    }
-
-    public TruthTable(@NotNull Expression[] expressions, Sort sort) {
-        this(expressions, Hide.NONE, sort);
-    }
-
-    public TruthTable(@NotNull Expression[] expressions, Hide hide) {
-        this(expressions, hide, Sort.DEFAULT);
     }
 
     @NotNull
@@ -62,7 +54,7 @@ public class TruthTable {
     }
 
     @NotNull
-    public boolean[][] create(Hide hide, Sort sort) { // TODO implement hide and sort
+    public boolean[][] create(Hide hide, Sort sort) {
 
         boolean[][] helperMatrix = helperMatrix(ExpressionUtils.getNumberOfUniqueAtomics(expressions));
 
@@ -82,7 +74,7 @@ public class TruthTable {
                 assert truthMatrix[row] != null;
 
                 // If not using 'not' operator
-                if (exp.isAtomic() && StringUtils.numberOfChar(exp.getLeading(), '¬') % 2 == 0) {
+                if (exp.isAtomic() && !exp.isInverse()) {
                     truthMatrix[row][column] = helperMatrix[truthMatrixRowIndex][truthMatrixColIndex];
 
                     // Iterates through the helperMatrix
@@ -94,6 +86,7 @@ public class TruthTable {
                 }
                 // If using 'not' operator
                 else if (exp.isAtomic()) {
+
                     final int index = findExp(expressions, new Expression(exp.getLeft(), exp.getOperator(), exp.getRight(), exp.getAtomic()));
                     boolean exists = false;
                     if (index != -1) {
@@ -102,8 +95,8 @@ public class TruthTable {
                     truthMatrix[row][column] = !exists;
                 }
                 else {
-                    final boolean left = truthMatrix[row][findExp(expressions, exp.getLeft())];
-                    final boolean right = truthMatrix[row][findExp(expressions, exp.getRight())];
+                    final boolean left = resolveResult(truthMatrix[row], exp.getLeft());
+                    final boolean right = resolveResult(truthMatrix[row], exp.getRight());
 
                     final boolean boolExp = exp.solve(left, right);
 
@@ -132,7 +125,13 @@ public class TruthTable {
         return truthMatrix;
     }
 
-    // Finds the location of an expression, then checks the value
+    /**
+     * Finds the location of an expression, then checks the value
+     *
+     * @param expressions The expressions to search through
+     * @param exp         The expression to find
+     * @return The index of the expression, or -1 if not found
+     */
     private int findExp(@NotNull Expression[] expressions, @NotNull Expression exp) {
         for (int i = 0; i < expressions.length; i++) {
 
@@ -141,6 +140,29 @@ public class TruthTable {
             }
         }
         return -1;
+    }
+
+    /**
+     * Resolves the result of an expression, using the truth row
+     * @param truthRow The truth row to search through
+     * @param exp The expression to resolve
+     * @return The result of the expression or false if not found
+     */
+    private boolean resolveResult(@NotNull boolean[] truthRow, @Nullable Expression exp) {
+        if (exp == null) {
+            return false;
+        }
+
+        boolean result = false;
+        int index = findExp(expressions, exp);
+
+        if (index == -1) {
+            boolean left = resolveResult(truthRow, exp.getLeft());
+            boolean right = resolveResult(truthRow, exp.getRight());
+            result = exp.solve(left, right);
+        }
+
+        return index != -1 ? truthRow[index] : result;
     }
 
     @JsonIgnore

@@ -607,13 +607,18 @@ public class Expression {
         return result;
     }
 
+    @NotNull
+    public Expression[] toSetArray() {
+        return toSetArray(false);
+    }
+
     /**
      * @return A set of all expressions in the tree structure
      */
     @NotNull
-    public Expression[] toSetArray() {
+    public Expression[] toSetArray(boolean hideIntermediates) {
         final List<Expression> list = new ArrayList<>();
-        toSetArray(this, list);
+        toSetArray(this, this, list, hideIntermediates);
         return list.toArray(Expression[]::new);
     }
 
@@ -621,13 +626,18 @@ public class Expression {
      * @param exp         The current object
      * @param expressions An empty list of type Expression, where the objects will be stored
      */
-    private static void toSetArray(Expression exp, List<Expression> expressions) {
+    private static void toSetArray(@Nullable Expression exp, @NotNull Expression root, @NotNull List<Expression> expressions, boolean hideIntermediates) {
         if (exp != null) {
-            toSetArray(exp.left, expressions);
-            toSetArray(exp.right, expressions);
+            toSetArray(exp.left, root, expressions, hideIntermediates);
+            toSetArray(exp.right, root, expressions, hideIntermediates);
 
             boolean oppositeExists = false;
 
+            if (hideIntermediates) {
+                if (exp != root && !exp.isAtomic()) {
+                    return;
+                }
+            }
             for (Expression ex : expressions) {
                 if (exp.equals(ex)) {
                     return;

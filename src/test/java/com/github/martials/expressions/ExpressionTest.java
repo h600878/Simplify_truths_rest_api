@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ExpressionTest {
 
     private Expression
+            atomicA,
             alwaysTrue1, alwaysTrue2,
             alwaysFalse1, alwaysFalse2,
             doubleInverse, tripleInverse, quadInverse, fiveInverse,
@@ -19,10 +20,12 @@ public class ExpressionTest {
             aAndBorBandC, aOrBandBorC,
             parenthesesAandB,
             wrongOrder,
-            notAAndNotCOrA;
+            notAAndNotCOrA,
+            aAndBAndCAndD;
 
     @BeforeEach
     void setup() {
+        atomicA = new ExpressionUtils("A", false).simplify();
         alwaysTrue1 = new ExpressionUtils("Ape⋁¬Ape", false).simplify();
         alwaysTrue2 = new ExpressionUtils("Ape⋀Banana➔Ape", false).simplify();
         alwaysFalse1 = new ExpressionUtils("Ape⋀¬Ape", false).simplify();
@@ -42,6 +45,7 @@ public class ExpressionTest {
         aOrBandBorC = new ExpressionUtils("(A⋁B)⋀(B⋁C)", false).simplify();
         wrongOrder = new ExpressionUtils("B⋁A", false).simplify();
         notAAndNotCOrA = new ExpressionUtils("¬A⋀¬C⋁A", false).simplify();
+        aAndBAndCAndD = new ExpressionUtils("A⋀B⋀C⋀D", false).simplify();
     }
 
     @Test
@@ -186,7 +190,7 @@ public class ExpressionTest {
     }
 
     @Test
-    void isAtomic() {
+    void isNotAtomic() {
         assertFalse(alwaysTrue1.isAtomic());
         assertFalse(alwaysTrue2.isAtomic());
         assertFalse(alwaysFalse1.isAtomic());
@@ -194,11 +198,40 @@ public class ExpressionTest {
     }
 
     @Test
-    void isNotAtomic() {
+    void isAtomic() {
         assertTrue(doubleInverse.isAtomic());
         assertTrue(tripleInverse.isAtomic());
         assertTrue(quadInverse.isAtomic());
         assertTrue(fiveInverse.isAtomic());
+    }
+
+    @Test
+    void toSetArrayNotHideIntermediate() {
+        Expression[] allAndsResult = aAndBAndCAndD.toSetArray(false);
+
+        assertEquals(aAndBAndCAndD.getNumberOfAtomics() * 2 - 1, allAndsResult.length);
+        assertEquals("A", allAndsResult[0].toString());
+        assertEquals(aAndBAndCAndD, allAndsResult[allAndsResult.length - 1]);
+
+        Expression[] atomicResult = atomicA.toSetArray(false);
+        assertEquals(1, atomicResult.length);
+    }
+
+    @Test
+    void toSetArrayHideIntermediate() {
+        Expression[] allAndsResult = aAndBAndCAndD.toSetArray(true);
+
+        assertEquals(aAndBAndCAndD.getNumberOfAtomics() + 1, allAndsResult.length);
+        assertEquals("A", allAndsResult[0].toString());
+        assertEquals(aAndBAndCAndD, allAndsResult[allAndsResult.length - 1]);
+
+        // All expressions in the array should be atomic, except the last one
+        for (int i = 0; i < allAndsResult.length - 1; i++) {
+            assertTrue(allAndsResult[i].isAtomic());
+        }
+
+        Expression[] atomicResult = atomicA.toSetArray(true);
+        assertEquals(1, atomicResult.length);
     }
 
     @Test
