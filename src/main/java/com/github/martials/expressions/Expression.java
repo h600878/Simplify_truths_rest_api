@@ -218,16 +218,16 @@ public class Expression {
                 final String rightLeft = right.left.atomic;
                 final String rightRight = right.right.atomic;
 
-                if (Objects.equals(leftLeft, rightLeft) && !Objects.equals(leftRight, rightRight)) {
+                if (leftLeft != null && Objects.equals(leftLeft, rightLeft) && !Objects.equals(leftRight, rightRight)) {
                     setObjects(left.right, right.right, left.left);
                 }
-                else if (Objects.equals(leftLeft, rightRight) && !Objects.equals(leftRight, rightLeft)) {
+                else if (leftLeft != null && Objects.equals(leftLeft, rightRight) && !Objects.equals(leftRight, rightLeft)) {
                     setObjects(left.right, right.left, left.left);
                 }
-                else if (Objects.equals(leftRight, rightLeft) && !Objects.equals(leftLeft, rightRight)) {
+                else if (leftRight != null && Objects.equals(leftRight, rightLeft) && !Objects.equals(leftLeft, rightRight)) {
                     setObjects(left.left, right.right, left.right);
                 }
-                else if (Objects.equals(leftRight, rightRight) && !Objects.equals(leftLeft, rightLeft)) {
+                else if (leftRight != null && Objects.equals(leftRight, rightRight) && !Objects.equals(leftLeft, rightLeft)) {
                     setObjects(left.left, right.left, left.right);
                 }
             }

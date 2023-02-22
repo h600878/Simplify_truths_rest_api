@@ -21,7 +21,7 @@ public class ExpressionTest {
             parenthesesAandB,
             wrongOrder,
             notAAndNotCOrA,
-            aAndBAndCAndD;
+            aAndBAndCAndD, aAndBAndCOrDAndEAndF;
 
     @BeforeEach
     void setup() {
@@ -46,6 +46,7 @@ public class ExpressionTest {
         wrongOrder = new ExpressionUtils("B⋁A", false).simplify();
         notAAndNotCOrA = new ExpressionUtils("¬A⋀¬C⋁A", false).simplify();
         aAndBAndCAndD = new ExpressionUtils("A⋀B⋀C⋀D", false).simplify();
+        aAndBAndCOrDAndEAndF = new ExpressionUtils("A⋀B⋀C⋁D⋀E⋀F", false).simplify();
     }
 
     @Test
@@ -85,6 +86,13 @@ public class ExpressionTest {
         assertEquals("B ⋁ A ⋀ C", aOrBandBorC.toString());
         aAndBorBandC.distributiveProperty();
         assertEquals("B ⋀ (A ⋁ C)", aAndBorBandC.toString());
+    }
+
+    @Test
+    void distibutivePropertyDontChangeExpression() {
+        Expression old = aAndBAndCOrDAndEAndF;
+        aAndBAndCOrDAndEAndF.distributiveProperty();
+        assertEquals(aAndBAndCOrDAndEAndF, old);
     }
 
     @Test
