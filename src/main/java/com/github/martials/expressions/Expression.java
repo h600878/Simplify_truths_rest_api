@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Expression {
+public class Expression { // TODO move some of the logic it's own class and extend it, left, right, operator, etc.
 
     private String leading;
     private Expression left;
@@ -594,13 +594,7 @@ public class Expression {
      */
     public boolean solve(boolean left, boolean right) {
 
-        boolean result = switch (operator) {
-            case AND -> left && right;
-            case OR -> left || right;
-            case IMPLICATION -> !left || right;
-            default -> false;
-        };
-
+        boolean result = operator.test(left, right);
         if (isInverse()) {
             result = !result;
         }

@@ -204,10 +204,10 @@ public class ExpressionUtils {
 
         // Finds the rightmost operator with the lowest weight, if all the operators are equal, pick the center most
         for (int i = 1; i < operators.size(); i++) {
-            if (operators.get(i).operator().getWeight() != op.operator().getWeight()) {
+            if (operators.get(i).operator().ordinal() != op.operator().ordinal()) {
                 allEqual = false;
             }
-            if (operators.get(i).operator().getWeight() <= op.operator().getWeight()) {
+            if (operators.get(i).operator().ordinal() <= op.operator().ordinal()) {
                 op = operators.get(i);
             }
         }

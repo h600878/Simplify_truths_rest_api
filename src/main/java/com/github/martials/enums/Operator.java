@@ -1,26 +1,38 @@
 package com.github.martials.enums;
 
+import com.github.martials.BiPredicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+/**
+ * An enum representing the operators used in the expression.
+ * The ordinal of the enum determines the weight of the operator. 0 is the highest weight, and will be evaluated first.
+ *
+ * @author Martin Berg Alstad
+ */
 public enum Operator {
-    IMPLICATION('➔', 0, Pattern.compile("->")),
-    OR('⋁', 1, Pattern.compile("/")),
-    AND('⋀', 2, Pattern.compile("&")),
-    NOT('¬', 3, Pattern.compile("!"));
+    IMPLICATION('➔', Pattern.compile("->"), (a, b) -> !a || b),
+    OR('⋁', Pattern.compile("/"), (a, b) -> a || b),
+    AND('⋀', Pattern.compile("&"), (a, b) -> a && b),
+    NOT('¬', Pattern.compile("!"), (a, b) -> !a);
 
     private final char operator;
-    private final int weight;
     private final Pattern regex;
+    private final BiPredicate<Boolean> predicate;
 
-    Operator(char operator, int weight, Pattern regex) {
+    Operator(char operator, Pattern regex, BiPredicate<Boolean> predicate) {
         this.operator = operator;
-        this.weight = weight;
         this.regex = regex;
+        this.predicate = predicate;
+    }
+
+    public boolean test(boolean a, boolean b) {
+        return predicate.test(a, b);
     }
 
     @Nullable
@@ -60,10 +72,6 @@ public enum Operator {
 
     public char getOperator() {
         return operator;
-    }
-
-    public int getWeight() {
-        return weight;
     }
 
     public Pattern getRegex() {
