@@ -1,0 +1,25 @@
+logging:
+  level:
+    # fatal -> error -> warn -> info -> debug -> trace
+    com.github.martials.controllers: info
+    com.github.martials.expressions: info
+
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+
+server:
+  port: 8080
+
+martials:
+  version: 2.0
+  api:
+    dev-url: http://localhost:8080
+    prod-url: https://api.martials.no/simplify-truths/do
+  contact:
+    name: Martin Berg Alstad
+    email: me@martials.no
+    url: https://h600878.github.io/contact-me/
+

@@ -15,20 +15,28 @@ import com.github.martials.results.ResultOnlyTable;
 import com.github.martials.results.ResultWithTable;
 import com.github.martials.utils.ExpressionUtils;
 import com.github.martials.utils.StringUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-// TODO allow all origins?
+@CrossOrigin
 @RestController
-@CrossOrigin(origins = {"http://localhost:8000", "http://localhost:3000", "https://martials.no/", "https://h600878.github.io/", "https://api.martials.no"})
+@Tag(name = "Simplify", description = "Simplify Truth-values and generate truth tables.")
 public final class ApiController {
 
     private static final Logger log = LoggerFactory.getLogger(ApiController.class);
@@ -41,6 +49,14 @@ public final class ApiController {
      * @return The result of the simplified expression, or null if not valid
      */
     @NotNull
+    @Operation(
+            summary = "Simplify a truth expression",
+            description = "Simplify a truth expression, and return the result. If the expression is not valid, the result will be empty with an error message.",
+            tags = {"Simplify"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The expression was valid and simplified", content = {@Content(schema = @Schema(implementation = Result.class), mediaType = "application/json")}),
+    })
     @GetMapping("/simplify")
     public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp,
                                 @RequestParam(required = false) @Nullable final String lang,
@@ -69,6 +85,14 @@ public final class ApiController {
      * @return A matrix representation of a table with truth values
      */
     @NotNull
+    @Operation(
+            summary = "Generate a truth table",
+            description = "Generate a truth table, and return the result. If the expression is not valid, the result will be empty with an error message.",
+            tags = {"table"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated", content = {@Content(schema = @Schema(implementation = ResultOnlyTable.class), mediaType = "application/json")}),
+    })
     @PostMapping("/table")
     public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp,
                              @RequestHeader(defaultValue = "DEFAULT") final Sort sort,
@@ -107,6 +131,14 @@ public final class ApiController {
      * @return A simplified expression and a matrix representation of a table with truth values
      */
     @NotNull
+    @Operation(
+            summary = "Simplify a truth expression and generate a truth table",
+            description = "Simplify a truth expression, and return the result. If the expression is not valid, the result will be empty with an error message.",
+            tags = {"Simplify", "table"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated", content = {@Content(schema = @Schema(implementation = ResultWithTable.class), mediaType = "application/json")}),
+    })
     @GetMapping("/simplify/table")
     public EmptyResult simplifyAndTable(@RequestParam(required = false) @Nullable final String exp,
                                         @RequestParam(required = false) @Nullable final String lang,
