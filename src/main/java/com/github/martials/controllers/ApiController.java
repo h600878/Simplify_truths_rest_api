@@ -51,19 +51,23 @@ public final class ApiController { // TODO all params, body and headers are show
     @NotNull
     @Operation(
             summary = "Simplify a truth expression",
-            description = "Simplify a truth expression, and return the result. If the expression is not valid, the result will be empty with an error message.",
+            description = "Simplify a truth expression, and return the result." +
+                    " If the expression is not valid, the result will be empty with an error message.",
             tags = {"Simplify"}
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The expression was valid and simplified", content = {@Content(schema = @Schema(implementation = Result.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "400", description = "The expression was not valid", content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
+            @ApiResponse(responseCode = "200", description = "The expression was valid and simplified",
+                    content = {@Content(schema = @Schema(implementation = Result.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "The expression was not valid",
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
     @GetMapping("/simplify/{exp}")
-    public ResponseEntity<EmptyResult> simplify(@PathVariable @NotNull final String exp,
-                                                @RequestParam(required = false) @Nullable final String lang,
-                                                @RequestParam(defaultValue = "true") final boolean simplify,
-                                                @RequestParam(defaultValue = "false") final boolean caseSensitive,
-                                                @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    public ResponseEntity<EmptyResult> simplify(
+            @PathVariable @NotNull final String exp,
+            @RequestParam(required = false) @Nullable final String lang,
+            @RequestParam(defaultValue = "true") final boolean simplify,
+            @RequestParam(defaultValue = "false") final boolean caseSensitive,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify,
                 ", caseSensitive=" + caseSensitive);
@@ -71,7 +75,8 @@ public final class ApiController { // TODO all params, body and headers are show
         final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
 
         final long startTime = System.currentTimeMillis();
-        final ResponseEntity<EmptyResult> result = simplifyIfLegal(eu, expression -> new Result(exp, expression.toString(), eu.getOperations(), expression));
+        final ResponseEntity<EmptyResult> result = simplifyIfLegal(eu, expression ->
+                new Result(exp, expression.toString(), eu.getOperations(), expression));
         log.info("Expression simplified in: " + (System.currentTimeMillis() - startTime) + "ms");
 
         log.debug("Result sent: {}", result);
@@ -84,23 +89,29 @@ public final class ApiController { // TODO all params, body and headers are show
     @NotNull
     @Operation(
             summary = "Generate a truth table",
-            description = "Generate a truth table, and return the result. If the expression is not valid, the result will be empty with an error message.",
+            description = "Generate a truth table, and return the result." +
+                    " If the expression is not valid, the result will be empty with an error message.",
             tags = {"table"}
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated", content = {@Content(schema = @Schema(implementation = ResultOnlyTable.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "400", description = "The expression was not valid", content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
-            @ApiResponse(responseCode = "404", description = "The body was empty", content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
+            @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated",
+                    content = {@Content(schema = @Schema(implementation = ResultOnlyTable.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "The expression was not valid",
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
+            @ApiResponse(responseCode = "404", description = "The body was empty",
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
     @PostMapping("/table")
-    public ResponseEntity<EmptyResult> table(@RequestBody(required = false) @Nullable final Expression exp,
-                                             @RequestHeader(defaultValue = "DEFAULT") final Sort sort,
-                                             @RequestHeader(defaultValue = "NONE") final Hide hide,
-                                             @RequestHeader(defaultValue = "false") final boolean hideIntermediate,
-                                             @RequestHeader(required = false) @Nullable final String lang,
-                                             @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    public ResponseEntity<EmptyResult> table(
+            @RequestBody(required = false) @Nullable final Expression exp,
+            @RequestHeader(defaultValue = "DEFAULT") final Sort sort,
+            @RequestHeader(defaultValue = "NONE") final Hide hide,
+            @RequestHeader(defaultValue = "false") final boolean hideIntermediate,
+            @RequestHeader(required = false) @Nullable final String lang,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
-        log.info("Table call with the following parametres: exp={}, sort={}, hide={}, hideIntermediate={}, lang={}", exp, sort, hide, hideIntermediate, lang);
+        log.info("Table call with the following parametres: exp={}, sort={}, hide={}, hideIntermediate={}, lang={}",
+                exp, sort, hide, hideIntermediate, lang);
 
         setAndLogLanguage(lang, header);
 
@@ -118,7 +129,7 @@ public final class ApiController { // TODO all params, body and headers are show
         final TruthTable table = new TruthTable(exp.toSetArray(hideIntermediate));
         log.debug("New table created: {}", table);
 
-        final ResponseEntity<EmptyResult> result = new ResponseEntity<>(new ResultOnlyTable(exp.toString(), mapToStrings(table), table), HttpStatus.OK);
+        final ResponseEntity<EmptyResult> result = ResponseEntity.ok(new ResultOnlyTable(exp.toString(), mapToStrings(table), table));
         log.debug("Result sent: {}", result);
 
         return result;
@@ -130,25 +141,30 @@ public final class ApiController { // TODO all params, body and headers are show
     @NotNull
     @Operation(
             summary = "Simplify a truth expression and generate a truth table",
-            description = "Simplify a truth expression, and return the result. If the expression is not valid, the result will be empty with an error message.",
+            description = "Simplify a truth expression, and return the result." +
+                    " If the expression is not valid, the result will be empty with an error message.",
             tags = {"Simplify", "table"}
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated", content = {@Content(schema = @Schema(implementation = ResultWithTable.class), mediaType = "application/json")}),
-            @ApiResponse(responseCode = "400", description = "The expression was not valid", content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
+            @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated",
+                    content = {@Content(schema = @Schema(implementation = ResultWithTable.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "The expression was not valid",
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
     @GetMapping("/simplify/table/{exp}")
-    public ResponseEntity<EmptyResult> simplifyAndTable(@PathVariable @NotNull final String exp,
-                                                        @RequestParam(required = false) @Nullable final String lang,
-                                                        @RequestParam(defaultValue = "true") final boolean simplify,
-                                                        @RequestParam(defaultValue = "false") final boolean caseSensitive,
-                                                        @RequestParam(defaultValue = "DEFAULT") final Sort sort,
-                                                        @RequestParam(defaultValue = "NONE") final Hide hide,
-                                                        @RequestParam(defaultValue = "false") final boolean hideIntermediate,
-                                                        @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
+    public ResponseEntity<EmptyResult> simplifyAndTable(
+            @PathVariable @NotNull final String exp,
+            @RequestParam(required = false) @Nullable final String lang,
+            @RequestParam(defaultValue = "true") final boolean simplify,
+            @RequestParam(defaultValue = "false") final boolean caseSensitive,
+            @RequestParam(defaultValue = "DEFAULT") final Sort sort,
+            @RequestParam(defaultValue = "NONE") final Hide hide,
+            @RequestParam(defaultValue = "false") final boolean hideIntermediate,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
 
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
-                ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide + ", hideIntermediate=" + hideIntermediate + ", caseSensitive=" + caseSensitive);
+                ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide + ", hideIntermediate=" +
+                hideIntermediate + ", caseSensitive=" + caseSensitive);
 
         final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
 
