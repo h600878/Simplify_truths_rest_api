@@ -231,7 +231,7 @@ public class ExpressionUtils {
 
         final String atomicValues = "a-zA-ZæøåÆØÅ",
                 legalCharacters = atomicValues + "0-9\\(\\)⋁⋀➔¬ _=-",
-                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁➔]|[⋀⋁➔¬]$|[" + atomicValues + "] +[" + atomicValues + "]";
+                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁➔]|[⋀⋁➔¬] *$|[" + atomicValues + "] +[" + atomicValues + "]";
         final Pattern regex = Pattern.compile("[^" + legalCharacters + "]" + illegalRegex);
         final Matcher matcher = regex.matcher(expression);
 
