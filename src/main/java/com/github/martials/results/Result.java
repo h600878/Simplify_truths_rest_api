@@ -1,6 +1,5 @@
 package com.github.martials.results;
 
-import com.github.martials.Status;
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.OrderOperations;
 import org.jetbrains.annotations.NotNull;
@@ -19,9 +18,9 @@ public class Result extends EmptyResult {
     @Nullable
     protected final Expression expression;
 
-    public Result(@NotNull Status status, @NotNull String before, @NotNull String after,
+    public Result(@NotNull String before, @NotNull String after,
                   @Nullable List<OrderOperations> orderOperations, @Nullable Expression expression) {
-        super(status);
+        super();
         this.before = before;
         this.after = after;
         this.orderOperations = orderOperations;

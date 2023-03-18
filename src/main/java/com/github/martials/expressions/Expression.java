@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.martials.enums.Language;
 import com.github.martials.enums.Operator;
 import com.github.martials.utils.StringUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperties;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -13,6 +16,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Schema(name = "Expression", description = "A tree structure that represents an expression, each node contains an operator and two expressions.")
+@SchemaProperties(value = {
+        @SchemaProperty(name = "left", schema = @Schema(implementation = Expression.class)),
+        @SchemaProperty(name = "right", schema = @Schema(implementation = Expression.class)),
+        @SchemaProperty(name = "operator", schema = @Schema(implementation = Operator.class)),
+})
 public class Expression { // TODO move some of the logic it's own class and extend it, left, right, operator, etc.
 
     private String leading;
@@ -21,7 +30,6 @@ public class Expression { // TODO move some of the logic it's own class and exte
     private Expression right;
     private String trailing;
     private String atomic;
-
     private boolean caseSensitive;
 
     private final Logger log = LoggerFactory.getLogger(Expression.class);
@@ -735,7 +743,7 @@ public class Expression { // TODO move some of the logic it's own class and exte
     @Override
     public String toString() {
         if (isAtomic()) {
-            return leading + (!caseSensitive ? capitalizeFirstLetter(atomic) : atomic);
+            return leading + (!caseSensitive ? StringUtils.capitalizeFirstLetter(atomic) : atomic);
         }
         StringBuilder s = new StringBuilder(leading);
         if (left != null) {
@@ -749,10 +757,5 @@ public class Expression { // TODO move some of the logic it's own class and exte
         }
         s.append(trailing);
         return s.toString();
-    }
-
-    @NotNull
-    private static String capitalizeFirstLetter(@NotNull String string) {
-        return string.substring(0, 1).toUpperCase() + string.substring(1);
     }
 }

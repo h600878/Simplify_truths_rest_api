@@ -1,6 +1,5 @@
 package com.github.martials.controllers;
 
-import com.github.martials.Status;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Language;
 import com.github.martials.enums.Sort;
@@ -27,9 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -37,7 +37,7 @@ import java.util.function.Function;
 @CrossOrigin
 @RestController
 @Tag(name = "Simplify", description = "Simplify Truth-values and generate truth tables.")
-public final class ApiController {
+public final class ApiController { // TODO all params, body and headers are shown as required, even if they are not
 
     private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
@@ -56,25 +56,22 @@ public final class ApiController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The expression was valid and simplified", content = {@Content(schema = @Schema(implementation = Result.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "The expression was not valid", content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
-    @GetMapping("/simplify")
-    public EmptyResult simplify(@RequestParam(required = false) @Nullable final String exp,
-                                @RequestParam(required = false) @Nullable final String lang,
-                                @RequestParam(defaultValue = "true") final boolean simplify,
-                                @RequestParam(defaultValue = "false") final boolean caseSensitive,
-                                @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    @GetMapping("/simplify/{exp}")
+    public ResponseEntity<EmptyResult> simplify(@PathVariable @NotNull final String exp,
+                                                @RequestParam(required = false) @Nullable final String lang,
+                                                @RequestParam(defaultValue = "true") final boolean simplify,
+                                                @RequestParam(defaultValue = "false") final boolean caseSensitive,
+                                                @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify,
                 ", caseSensitive=" + caseSensitive);
 
         final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
-        if (eu == null) {
-            return new EmptyResult(Status.NOT_FOUND);
-        }
-        assert exp != null;
 
         final long startTime = System.currentTimeMillis();
-        final EmptyResult result = simplifyIfLegal(eu, expression -> new Result(Status.OK, exp, expression.toString(), eu.getOperations(), expression));
+        final ResponseEntity<EmptyResult> result = simplifyIfLegal(eu, expression -> new Result(exp, expression.toString(), eu.getOperations(), expression));
         log.info("Expression simplified in: " + (System.currentTimeMillis() - startTime) + "ms");
 
         log.debug("Result sent: {}", result);
@@ -92,36 +89,36 @@ public final class ApiController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated", content = {@Content(schema = @Schema(implementation = ResultOnlyTable.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "The expression was not valid", content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
+            @ApiResponse(responseCode = "404", description = "The body was empty", content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
     @PostMapping("/table")
-    public EmptyResult table(@RequestBody(required = false) @Nullable final Expression exp,
-                             @RequestHeader(defaultValue = "DEFAULT") final Sort sort,
-                             @RequestHeader(defaultValue = "NONE") final Hide hide,
-                             @RequestHeader(defaultValue = "false") final boolean hideIntermediate,
-                             @RequestHeader(required = false) @Nullable final String lang,
-                             @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
+    public ResponseEntity<EmptyResult> table(@RequestBody(required = false) @Nullable final Expression exp,
+                                             @RequestHeader(defaultValue = "DEFAULT") final Sort sort,
+                                             @RequestHeader(defaultValue = "NONE") final Hide hide,
+                                             @RequestHeader(defaultValue = "false") final boolean hideIntermediate,
+                                             @RequestHeader(required = false) @Nullable final String lang,
+                                             @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
 
         log.info("Table call with the following parametres: exp={}, sort={}, hide={}, hideIntermediate={}, lang={}", exp, sort, hide, hideIntermediate, lang);
 
         setAndLogLanguage(lang, header);
 
         if (exp == null) {
-            log.warn("Body is empty, exiting...");
-            return new EmptyResult(Status.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Expression not found in body");
         }
         try {
             new ExpressionUtils(exp.toString().replace(" ", "")).isLegalExpression();
         }
         catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
-            log.warn("Expression is not legal, exiting...");
             log.debug(Arrays.toString(e.getStackTrace()));
-            return new EmptyResult(new Status(500, e.getMessage()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
         final TruthTable table = new TruthTable(exp.toSetArray(hideIntermediate));
         log.debug("New table created: {}", table);
 
-        final ResultOnlyTable result = new ResultOnlyTable(Status.OK, exp.toString(), mapToStrings(table), table);
+        final ResponseEntity<EmptyResult> result = new ResponseEntity<>(new ResultOnlyTable(exp.toString(), mapToStrings(table), table), HttpStatus.OK);
         log.debug("Result sent: {}", result);
 
         return result;
@@ -138,32 +135,30 @@ public final class ApiController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated", content = {@Content(schema = @Schema(implementation = ResultWithTable.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "The expression was not valid", content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
-    @GetMapping("/simplify/table")
-    public EmptyResult simplifyAndTable(@RequestParam(required = false) @Nullable final String exp,
-                                        @RequestParam(required = false) @Nullable final String lang,
-                                        @RequestParam(defaultValue = "true") final boolean simplify,
-                                        @RequestParam(defaultValue = "false") final boolean caseSensitive,
-                                        @RequestParam(defaultValue = "DEFAULT") final Sort sort,
-                                        @RequestParam(defaultValue = "NONE") final Hide hide,
-                                        @RequestParam(defaultValue = "false") final boolean hideIntermediate,
-                                        @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
+    @GetMapping("/simplify/table/{exp}")
+    public ResponseEntity<EmptyResult> simplifyAndTable(@PathVariable @NotNull final String exp,
+                                                        @RequestParam(required = false) @Nullable final String lang,
+                                                        @RequestParam(defaultValue = "true") final boolean simplify,
+                                                        @RequestParam(defaultValue = "false") final boolean caseSensitive,
+                                                        @RequestParam(defaultValue = "DEFAULT") final Sort sort,
+                                                        @RequestParam(defaultValue = "NONE") final Hide hide,
+                                                        @RequestParam(defaultValue = "false") final boolean hideIntermediate,
+                                                        @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") @NotNull final String header) {
 
         log.info("Simplify and table call with the following parametres: exp=" + exp + ", lang=" + lang +
                 ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide + ", hideIntermediate=" + hideIntermediate + ", caseSensitive=" + caseSensitive);
 
         final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
-        if (eu == null) {
-            return new EmptyResult(Status.NOT_FOUND);
-        }
 
         final long startTime = System.currentTimeMillis();
-        final EmptyResult result = simplifyIfLegal(eu, expression -> {
+        final ResponseEntity<EmptyResult> result = simplifyIfLegal(eu, expression -> {
 
             TruthTable table = new TruthTable(expression.toSetArray(hideIntermediate), hide, sort);
             log.debug("New table created: {}", table);
-            assert exp != null;
-            return new ResultWithTable(Status.OK, exp, expression.toString(), eu.getOperations(),
+
+            return new ResultWithTable(exp, expression.toString(), eu.getOperations(),
                     expression, mapToStrings(table), table);
         });
 
@@ -173,14 +168,9 @@ public final class ApiController {
         return result;
     }
 
-    @Nullable
-    private ExpressionUtils initiate(String exp, String lang, boolean simplify, boolean caseSensitive, String header) {
+    @NotNull
+    private ExpressionUtils initiate(@NotNull String exp, String lang, boolean simplify, boolean caseSensitive, String header) {
         Language language = setAndLogLanguage(lang, header);
-
-        if (exp == null) {
-            log.warn("Parametre exp is empty, exiting...");
-            return null;
-        }
 
         final String newExpression = replace(exp, caseSensitive);
         return new ExpressionUtils(newExpression, simplify, language, caseSensitive);
@@ -197,32 +187,22 @@ public final class ApiController {
     }
 
     @NotNull
-    private EmptyResult simplifyIfLegal(@NotNull ExpressionUtils eu, Function<Expression, EmptyResult> function) {
-
-        String isLegal = "";
+    private ResponseEntity<EmptyResult> simplifyIfLegal(@NotNull ExpressionUtils eu, Function<Expression, EmptyResult> function) {
 
         try {
             eu.isLegalExpression();
         }
         catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
             log.debug(Arrays.toString(e.getStackTrace()));
-            isLegal = e.getMessage();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
         final Expression expression;
-        final EmptyResult result;
 
-        if (isLegal.equals("")) {
-            expression = eu.simplify();
-            log.debug("Expression simplified to: {}", expression);
-            result = function.apply(expression);
-        }
-        else {
-            log.error("Expression is not legal: {}", isLegal);
-            result = new EmptyResult(new Status(500, isLegal));
-        }
+        expression = eu.simplify();
+        log.debug("Expression simplified to: {}", expression);
 
-        return result;
+        return ResponseEntity.ok(function.apply(expression));
     }
 
     @NotNull

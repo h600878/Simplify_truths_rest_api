@@ -30,4 +30,9 @@ public abstract class StringUtils {
         return exp;
     }
 
+    @NotNull
+    public static String capitalizeFirstLetter(@NotNull String string) {
+        return string.substring(0, 1).toUpperCase() + string.substring(1);
+    }
+
 }

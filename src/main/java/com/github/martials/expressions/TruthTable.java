@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Sort;
 import com.github.martials.utils.ExpressionUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
 
+@Schema(name = "TruthTable", description = "A truth table for a given expression")
 public class TruthTable {
 
     private final Expression[] expressions;

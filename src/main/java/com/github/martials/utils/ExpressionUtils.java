@@ -214,6 +214,8 @@ public class ExpressionUtils {
         return allEqual ? operators.get(operators.size() / 2) : op;
     }
 
+    // TODO return better error messages
+
     /**
      * Checks if a string is a valid truth expression. If the string is valid, it will return "empty string", otherwise an error message
      * It is not true if either of the following are present.

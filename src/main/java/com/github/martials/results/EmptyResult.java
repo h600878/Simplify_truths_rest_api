@@ -1,19 +1,20 @@
 package com.github.martials.results;
 
-import com.github.martials.Status;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.jetbrains.annotations.NotNull;
 
-public class EmptyResult {
+@Schema(name = "EmptyResult", description = "Empty result with a status")
+public abstract class EmptyResult {
 
     @NotNull
-    protected final Status status;
+    protected final String status;
 
-    public EmptyResult(@NotNull Status status) {
-        this.status = status;
+    public EmptyResult() {
+        this.status = "OK";
     }
 
     @NotNull
-    public Status getStatus() {
+    public String getStatus() {
         return status;
     }
 

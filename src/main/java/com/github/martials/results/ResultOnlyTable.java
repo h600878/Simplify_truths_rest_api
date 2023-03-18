@@ -1,12 +1,13 @@
 package com.github.martials.results;
 
-import com.github.martials.Status;
 import com.github.martials.expressions.TruthTable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
+@Schema(name = "ResultOnlyTable", description = "Result with only the table table")
 public class ResultOnlyTable extends EmptyResult {
 
     @NotNull
@@ -15,8 +16,8 @@ public class ResultOnlyTable extends EmptyResult {
     @Nullable
     protected final TruthTable table;
 
-    public ResultOnlyTable(@NotNull Status status, @NotNull String expression, @Nullable String[] header, @Nullable TruthTable table) {
-        super(status);
+    public ResultOnlyTable(@NotNull String expression, @Nullable String[] header, @Nullable TruthTable table) {
+        super();
         this.expression = expression;
         this.header = header;
         this.table = table;
