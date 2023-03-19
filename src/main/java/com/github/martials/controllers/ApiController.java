@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.Function;
 
 @CrossOrigin
@@ -47,6 +47,7 @@ public final class ApiController { // TODO all params, body and headers are show
      * @param header   The accept language section of the header, the prefered language will be used, unless english is set
      * @param simplify Wheter or not to simplify the given expression
      * @return The result of the simplified expression, or null if not valid
+     * @throws ResponseStatusException If the expression is not valid
      */
     @NotNull
     @Operation(
@@ -72,12 +73,16 @@ public final class ApiController { // TODO all params, body and headers are show
         log.info("Simplify call with the following parametres: exp=" + exp + ", lang=" + lang + ", simplify=" + simplify,
                 ", caseSensitive=" + caseSensitive);
 
-        final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
+        StopWatch sw = new StopWatch();
+        final ExpressionUtils eu = getExpressionUtils(exp, lang, header, simplify, caseSensitive, sw);
 
-        final long startTime = System.currentTimeMillis();
-        final ResponseEntity<EmptyResult> result = simplifyIfLegal(eu, expression ->
+        final ResponseEntity<EmptyResult> result = simplify(eu, expression ->
                 new Result(exp, expression.toString(), eu.getOperations(), expression));
-        log.info("Expression simplified in: " + (System.currentTimeMillis() - startTime) + "ms");
+
+        if (log.isDebugEnabled()) {
+            sw.stop();
+            log.debug("Expression simplified in: " + sw.getTotalTimeMillis() + "ms");
+        }
 
         log.debug("Result sent: {}", result);
         return result;
@@ -85,6 +90,7 @@ public final class ApiController { // TODO all params, body and headers are show
 
     /**
      * @return A matrix representation of a table with truth values
+     * @throws ResponseStatusException If the expression is not valid
      */
     @NotNull
     @Operation(
@@ -113,13 +119,13 @@ public final class ApiController { // TODO all params, body and headers are show
         log.info("Table call with the following parametres: exp={}, sort={}, hide={}, hideIntermediate={}, lang={}",
                 exp, sort, hide, hideIntermediate, lang);
 
-        setAndLogLanguage(lang, header);
-
         if (exp == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Expression not found in body");
         }
+
         try {
-            new ExpressionUtils(exp.toString().replace(" ", "")).isLegalExpression();
+            Language language = Language.setLanguage(lang, header);
+            new ExpressionUtils(exp.toString(), false, language).isLegalExpression(); // TODO test if simplify should be true
         }
         catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
             log.debug(Arrays.toString(e.getStackTrace()));
@@ -129,7 +135,8 @@ public final class ApiController { // TODO all params, body and headers are show
         final TruthTable table = new TruthTable(exp.toSetArray(hideIntermediate));
         log.debug("New table created: {}", table);
 
-        final ResponseEntity<EmptyResult> result = ResponseEntity.ok(new ResultOnlyTable(exp.toString(), mapToStrings(table), table));
+        final ResultOnlyTable tableResult = new ResultOnlyTable(exp.toString(), StringUtils.mapToStrings(table), table);
+        final ResponseEntity<EmptyResult> result = ResponseEntity.ok(tableResult);
         log.debug("Result sent: {}", result);
 
         return result;
@@ -137,6 +144,7 @@ public final class ApiController { // TODO all params, body and headers are show
 
     /**
      * @return A simplified expression and a matrix representation of a table with truth values
+     * @throws ResponseStatusException if the expression is not valid
      */
     @NotNull
     @Operation(
@@ -166,45 +174,41 @@ public final class ApiController { // TODO all params, body and headers are show
                 ", simplify=" + simplify + ", sort=" + sort + ", hide=" + hide + ", hideIntermediate=" +
                 hideIntermediate + ", caseSensitive=" + caseSensitive);
 
-        final ExpressionUtils eu = initiate(exp, lang, simplify, caseSensitive, header);
+        StopWatch sw = new StopWatch();
+        final ExpressionUtils eu = getExpressionUtils(exp, lang, header, simplify, caseSensitive, sw);
 
-        final long startTime = System.currentTimeMillis();
-        final ResponseEntity<EmptyResult> result = simplifyIfLegal(eu, expression -> {
+        final ResponseEntity<EmptyResult> result = simplify(eu, expression -> {
 
             TruthTable table = new TruthTable(expression.toSetArray(hideIntermediate), hide, sort);
             log.debug("New table created: {}", table);
 
             return new ResultWithTable(exp, expression.toString(), eu.getOperations(),
-                    expression, mapToStrings(table), table);
+                    expression, StringUtils.mapToStrings(table), table);
         });
 
-        log.info("Expression simplified in: " + (System.currentTimeMillis() - startTime) + "ms");
+        if (log.isDebugEnabled()) {
+            sw.stop();
+            log.info("Expression simplified in: " + sw.getTotalTimeMillis() + "ms");
+        }
 
         log.debug("Result sent: {}", result);
         return result;
     }
 
     @NotNull
-    private ExpressionUtils initiate(@NotNull String exp, String lang, boolean simplify, boolean caseSensitive, String header) {
-        Language language = setAndLogLanguage(lang, header);
+    private ExpressionUtils getExpressionUtils(String exp, String lang, String header, boolean simplify, boolean caseSensitive, StopWatch sw) {
+        Language language = Language.setLanguage(lang, header);
 
-        final String newExpression = replace(exp, caseSensitive);
-        return new ExpressionUtils(newExpression, simplify, language, caseSensitive);
-    }
+        final String newExpression = StringUtils.formatString(exp, caseSensitive);
+        final ExpressionUtils eu = new ExpressionUtils(newExpression, simplify, language, caseSensitive);
 
-    @Nullable
-    private String[] mapToStrings(TruthTable table) {
-        if (table == null) {
-            return null;
+        if (log.isDebugEnabled()) {
+            sw.start();
         }
-        return Arrays.stream(table.getExpressions())
-                .map(Expression::toString)
-                .toArray(String[]::new);
+        return eu;
     }
 
-    @NotNull
-    private ResponseEntity<EmptyResult> simplifyIfLegal(@NotNull ExpressionUtils eu, Function<Expression, EmptyResult> function) {
-
+    private void isLegal(@NotNull ExpressionUtils eu) {
         try {
             eu.isLegalExpression();
         }
@@ -212,6 +216,12 @@ public final class ApiController { // TODO all params, body and headers are show
             log.debug(Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
+    }
+
+    @NotNull
+    private ResponseEntity<EmptyResult> simplify(@NotNull ExpressionUtils eu, @NotNull Function<Expression, EmptyResult> function) {
+
+        isLegal(eu);
 
         final Expression expression;
 
@@ -219,53 +229,6 @@ public final class ApiController { // TODO all params, body and headers are show
         log.debug("Expression simplified to: {}", expression);
 
         return ResponseEntity.ok(function.apply(expression));
-    }
-
-    @NotNull
-    private Language setAndLogLanguage(@Nullable String lang, @NotNull String header) {
-        log.info("ACCEPT_LANGUAGE header=" + header);
-        Language language = setLanguage(lang, header);
-        log.info("Language set to " + language);
-        return language;
-    }
-
-    @NotNull
-    private Language setLanguage(@Nullable String language, @NotNull String header) {
-        final String headerLang = header.substring(0, 2);
-        final List<String> norLangs = List.of("nb", "no", "nn");
-
-        if (language != null) {
-            for (Language lang : Language.values()) {
-                if (language.equalsIgnoreCase(lang.getLang())) {
-                    return lang;
-                }
-            }
-            log.warn("Language was not found");
-        }
-        else if (headerLang.equalsIgnoreCase("en")) {
-            return Language.ENGLISH;
-        }
-        else if (!norLangs.contains(headerLang.toLowerCase())) { // If neither "en", or the Norwegian languages
-            try {
-                setLanguage(null, header.split(",")[1]);
-            }
-            catch (IndexOutOfBoundsException ignored) {
-                log.warn("No language recognized in ACCEPT_LANGUAGE");
-            }
-        }
-        return Language.NORWEGIAN_BOKMAAL; // Default
-    }
-
-    @NotNull
-    private String replace(@NotNull String expression, boolean caseSensitive) {
-        if (!caseSensitive) {
-            expression = expression.toLowerCase();
-            log.debug("Expression converted to lowercase: {}", expression);
-        }
-
-        expression = StringUtils.replaceOperators(expression);
-        log.debug("Expression changed to: {}", expression);
-        return expression;
     }
 
 }

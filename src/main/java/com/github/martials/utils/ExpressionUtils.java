@@ -226,7 +226,7 @@ public class ExpressionUtils {
      *
      * @throws IllegalCharacterException If the string contains an illegal character, or missplaced chacater
      * @throws MissingCharacterException If the string is missing a character, or missing a parenthesis
-     * @throws TooBigExpressionException If the expression has more than 10 parts
+     * @throws TooBigExpressionException If the expression has more than 15 parts
      */
     public void isLegalExpression() throws IllegalCharacterException, MissingCharacterException, TooBigExpressionException { // TODO Gonna need some cleaning, use regex!
         assert expression != null : "Expression cannot be null";

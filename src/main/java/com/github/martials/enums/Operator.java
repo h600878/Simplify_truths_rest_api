@@ -1,13 +1,12 @@
 package com.github.martials.enums;
 
-import com.github.martials.BiPredicate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 import java.util.regex.Pattern;
 
 /**
@@ -25,9 +24,9 @@ public enum Operator {
 
     private final char operator;
     private final Pattern regex;
-    private final BiPredicate<Boolean> predicate;
+    private final BiPredicate<Boolean, Boolean> predicate;
 
-    Operator(char operator, Pattern regex, BiPredicate<Boolean> predicate) {
+    Operator(char operator, Pattern regex, BiPredicate<Boolean, Boolean> predicate) {
         this.operator = operator;
         this.regex = regex;
         this.predicate = predicate;

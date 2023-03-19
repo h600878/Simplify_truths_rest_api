@@ -90,32 +90,31 @@ public class TruthTable {
                 else if (exp.isAtomic()) {
 
                     final int index = findExp(expressions, new Expression(exp.getLeft(), exp.getOperator(), exp.getRight(), exp.getAtomic()));
-                    boolean exists = false;
+                    boolean oppositeExpVal = false;
                     if (index != -1) {
-                        exists = truthMatrix[row][index];
+                        oppositeExpVal = truthMatrix[row][index];
                     }
-                    truthMatrix[row][column] = !exists;
+                    truthMatrix[row][column] = !oppositeExpVal;
                 }
                 else {
                     final boolean left = resolveResult(truthMatrix[row], exp.getLeft());
                     final boolean right = resolveResult(truthMatrix[row], exp.getRight());
 
-                    final boolean boolExp = exp.solve(left, right);
+                    final boolean expValue = exp.solve(left, right);
 
-                    if (exp == expressions[expressions.length - 1] && (hide == Hide.TRUE && boolExp ||
-                            hide == Hide.FALSE && !boolExp)) {
+                    final int lastExpIndex = expressions.length - 1;
+                    if (exp == expressions[lastExpIndex] && (hide == Hide.TRUE && expValue ||
+                            hide == Hide.FALSE && !expValue)) {
                         truthMatrix[row] = null;
                     }
                     else {
-                        truthMatrix[row][column] = boolExp;
+                        truthMatrix[row][column] = expValue;
 
-                        if (exp == expressions[expressions.length - 1] &&
-                                (sort == Sort.TRUE_FIRST && boolExp || sort == Sort.FALSE_FIRST && !boolExp)) {
-                            int r = row;
-                            while (r > 0 && (truthMatrix[r - 1] == null || truthMatrix[r - 1][expressions.length - 1] == !boolExp)) {
-                                final boolean[] help = truthMatrix[r];
-                                truthMatrix[r] = truthMatrix[r - 1];
-                                truthMatrix[r - 1] = help;
+                        if (exp == expressions[lastExpIndex] &&
+                                (sort == Sort.TRUE_FIRST && expValue || sort == Sort.FALSE_FIRST && !expValue)) {
+                            int r = row; // TODO use better sort algorithm
+                            while (r > 0 && (truthMatrix[r - 1] == null || truthMatrix[r - 1][lastExpIndex] == !expValue)) {
+                                swap(truthMatrix, r, r - 1);
                                 r--;
                             }
                         }
@@ -125,6 +124,12 @@ public class TruthTable {
         }
         truthMatrix = Arrays.stream(truthMatrix).filter(Objects::nonNull).toArray(boolean[][]::new);
         return truthMatrix;
+    }
+
+    private void swap(@NotNull boolean[][] truthMatrix, int row1, int row2) {
+        final boolean[] help = truthMatrix[row1];
+        truthMatrix[row1] = truthMatrix[row2];
+        truthMatrix[row2] = help;
     }
 
     /**
