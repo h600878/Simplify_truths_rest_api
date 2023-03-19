@@ -1,17 +1,20 @@
 package com.github.martials.expressions;
 
+import com.github.martials.enums.Language;
 import com.github.martials.utils.ExpressionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ExpressionTest {
 
     private Expression
-            atomicA,
+            atomicA, aOrB, aOrBOrC,
             alwaysTrue1, alwaysTrue2,
             alwaysFalse1, alwaysFalse2,
             doubleInverse, tripleInverse, quadInverse, fiveInverse,
@@ -26,6 +29,8 @@ public class ExpressionTest {
     @BeforeEach
     void setup() {
         atomicA = new ExpressionUtils("A", false).simplify();
+        aOrB = new ExpressionUtils("A⋁B", false).simplify();
+        aOrBOrC = new ExpressionUtils("A⋁B⋁C", false).simplify();
         alwaysTrue1 = new ExpressionUtils("Ape⋁¬Ape", false).simplify();
         alwaysTrue2 = new ExpressionUtils("Ape⋀Banana➔Ape", false).simplify();
         alwaysFalse1 = new ExpressionUtils("Ape⋀¬Ape", false).simplify();
@@ -51,11 +56,22 @@ public class ExpressionTest {
 
     @Test
     void testEquals() {
+        assertEquals(alwaysFalse1, alwaysFalse1);
+        assertEquals(wrongOrder, aOrB);
+        assertEquals(alwaysTrue1, new ExpressionUtils("Ape⋁¬Ape", false).simplify());
+    }
 
+    @Test
+    void testNotEquals() {
         assertNotEquals(alwaysTrue1, alwaysTrue2);
         assertNotEquals(alwaysFalse1, alwaysFalse2);
+        assertNotEquals(aAndA, aOrA);
+        assertNotEquals(aAndAOrA, aAndBAndCOrDAndEAndF);
+    }
 
-        assertEquals(alwaysFalse1, alwaysFalse1);
+    @Test
+    void equalsOtherObjectOfDifferentClass() {
+        assertNotEquals(alwaysTrue1, new Object());
     }
 
     @Test
@@ -68,7 +84,31 @@ public class ExpressionTest {
     }
 
     @Test
-    void removeParenthesis() {
+    void runAllLawsInEnglish() {
+        List<OrderOperations> orderOperations = new ArrayList<>();
+        aImpliesNotA.laws(orderOperations, Language.ENGLISH);
+
+        assertEquals(3, orderOperations.size());
+        lawContains(orderOperations, "Elimination of", "De Morgan's", "Absorption");
+    }
+
+    @Test
+    void runAllLawsInNorwegian() {
+        List<OrderOperations> orderOperations = new ArrayList<>();
+        aImpliesNotA.laws(orderOperations, Language.NORWEGIAN_BOKMAAL);
+
+        assertEquals(3, orderOperations.size());
+        lawContains(orderOperations, "Eliminering av", "De Morgans", "Absorpsjon");
+    }
+
+    private static void lawContains(List<OrderOperations> orderOperations, @NotNull String... laws) {
+        for (int i = 0; i < laws.length; i++) {
+            assertTrue(orderOperations.get(i).law().contains(laws[i]), orderOperations.get(i).law());
+        }
+    }
+
+    @Test
+    void removeParenthesis_bothAtomic() {
         parenthesesAandB.removeParenthesis(new ArrayList<>());
         assertEquals("A ⋀ B", parenthesesAandB.toString());
 
@@ -81,6 +121,25 @@ public class ExpressionTest {
     }
 
     @Test
+    void removeParenthesis_rightAtomicExpression() {
+        Expression old = aOrBOrC;
+        aOrBOrC.setLeading("(");
+        aOrBOrC.setTrailing(")");
+        aOrBOrC.removeParenthesis(new ArrayList<>());
+        assertEquals(old, aOrBOrC);
+    }
+
+    @Test
+    void removeParenthesis_leftAtomicExpression() {
+        Expression old = aOrBOrC;
+        aOrBOrC.swapChildren();
+        aOrBOrC.setLeading("(");
+        aOrBOrC.setTrailing(")");
+        aOrBOrC.removeParenthesis(new ArrayList<>());
+        assertEquals(old, aOrBOrC);
+    }
+
+    @Test
     void distributiveProperty() {
         aOrBandBorC.distributiveProperty();
         assertEquals("B ⋁ A ⋀ C", aOrBandBorC.toString());
@@ -89,7 +148,7 @@ public class ExpressionTest {
     }
 
     @Test
-    void distibutivePropertyDontChangeExpression() {
+    void distibutiveProperty_DontChangeExpression() {
         Expression old = aAndBAndCOrDAndEAndF;
         aAndBAndCOrDAndEAndF.distributiveProperty();
         assertEquals(aAndBAndCOrDAndEAndF, old);
@@ -175,6 +234,11 @@ public class ExpressionTest {
     }
 
     @Test
+    void getNumberOfAtomicsWhemNull() {
+        assertEquals(0, new Expression().getNumberOfAtomics());
+    }
+
+    @Test
     void solveAlwaysTrue() {
         final boolean[] booleans = new boolean[] {false, true};
 
@@ -195,6 +259,16 @@ public class ExpressionTest {
     @Test
     void solveNeitherTrue() {
         assertFalse(wrongOrder.solve(false, false));
+    }
+
+    @Test
+    void solveDoNotThrowExceptionWhenAtomic() {
+        assertDoesNotThrow(() -> doubleInverse.solve(true, true));
+    }
+
+    @Test
+    void solveWhenInverse() {
+        assertFalse(tripleInverse.solve(true, true));
     }
 
     @Test

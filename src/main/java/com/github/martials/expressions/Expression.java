@@ -294,13 +294,11 @@ public class Expression { // TODO move some of the logic it's own class and exte
             // The entire expression uses negation
             else if (isInverse()) {
 
-                if (left != null && right != null) {
-                    if (left.isInverse()) {
-                        setNot(left, right);
-                    }
-                    else if (right.isInverse()) {
-                        setNot(right, left);
-                    }
+                if (left.isInverse()) {
+                    setNot(left, right);
+                }
+                else if (right.isInverse()) {
+                    setNot(right, left);
                 }
             }
             // Left side uses negation, but right side does not
@@ -385,7 +383,7 @@ public class Expression { // TODO move some of the logic it's own class and exte
         }
     }
 
-    private void swapChildren() {
+    void swapChildren() {
         Expression help = left;
         left = right;
         right = help;
@@ -590,7 +588,7 @@ public class Expression { // TODO move some of the logic it's own class and exte
         else if (exp.isAtomic()) {
             return 1;
         }
-        return exp.left.getNumberOfAtomics() + exp.right.getNumberOfAtomics();
+        return getNumberOfAtomics(exp.left) + getNumberOfAtomics(exp.right);
     }
 
     /**
@@ -602,7 +600,7 @@ public class Expression { // TODO move some of the logic it's own class and exte
      */
     public boolean solve(boolean left, boolean right) {
 
-        boolean result = operator.test(left, right);
+        boolean result = operator != null ? operator.test(left, right) : left;
         if (isInverse()) {
             result = !result;
         }
