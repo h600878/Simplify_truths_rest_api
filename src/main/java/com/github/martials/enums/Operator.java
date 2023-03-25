@@ -15,7 +15,10 @@ import java.util.regex.Pattern;
  *
  * @author Martin Berg Alstad
  */
-@Schema(name = "Operator", description = "An enum representing the operators used in the expression. The current operators are: AND(&), OR(/), IMPLICATION(->), NOT(!)")
+@Schema(name = "Operator",
+        description = "An enum representing the operators used in the expression." +
+                " The current operators are: AND(&), OR(/), IMPLICATION(->), NOT(!)",
+        allowableValues = {"AND", "OR", "IMPLICATION", "NOT"})
 public enum Operator {
     IMPLICATION('➔', Pattern.compile("->"), (a, b) -> !a || b),
     OR('⋁', Pattern.compile("/"), (a, b) -> a || b),

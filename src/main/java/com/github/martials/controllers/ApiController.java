@@ -125,7 +125,7 @@ public final class ApiController { // TODO all params, body and headers are show
 
         try {
             Language language = Language.setLanguage(lang, header);
-            new ExpressionUtils(exp.toString(), false, language).isLegalExpression(); // TODO test if simplify should be true
+            new ExpressionUtils(exp.toString(), false, language).isLegalExpression();
         }
         catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
             log.debug(Arrays.toString(e.getStackTrace()));
