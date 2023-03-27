@@ -119,12 +119,14 @@ public final class ApiController { // TODO all params, body and headers are show
         log.info("Table call with the following parametres: exp={}, sort={}, hide={}, hideIntermediate={}, lang={}",
                 exp, sort, hide, hideIntermediate, lang);
 
+        Language language = Language.setLanguage(lang, header);
+
         if (exp == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Expression not found in body");
+            String message = language == Language.ENGLISH ? "Expression not found in body" : "Uttrykk ikke funnet i body";
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
         }
 
         try {
-            Language language = Language.setLanguage(lang, header);
             new ExpressionUtils(exp.toString(), false, language).isLegalExpression();
         }
         catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
