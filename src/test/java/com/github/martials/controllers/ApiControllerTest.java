@@ -69,7 +69,7 @@ public class ApiControllerTest {
         assert result != null && result.getExpression() != null;
 
         for (Operator operator : Operator.values()) {
-            expression = expression.replace(operator.getRegex().pattern(), String.valueOf(operator.getOperator()));
+            expression = expression.replace(operator.getInputOperator(), String.valueOf(operator.getOperator()));
         }
 
         assertEquals(expression, result.getExpression().toString());

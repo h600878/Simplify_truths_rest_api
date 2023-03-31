@@ -7,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.BiPredicate;
-import java.util.regex.Pattern;
 
 /**
  * An enum representing the operators used in the expression.
@@ -18,20 +17,24 @@ import java.util.regex.Pattern;
 @Schema(name = "Operator",
         description = "An enum representing the operators used in the expression." +
                 " The current operators are: AND(&), OR(/), IMPLICATION(->), NOT(!)",
-        allowableValues = {"AND", "OR", "IMPLICATION", "NOT"})
+        allowableValues = {"AND", "OR", "IMPLICATION", "NOT"},
+        nullable = true
+)
 public enum Operator {
-    IMPLICATION('➔', Pattern.compile("->"), (a, b) -> !a || b),
-    OR('⋁', Pattern.compile("/"), (a, b) -> a || b),
-    AND('⋀', Pattern.compile("&"), (a, b) -> a && b),
-    NOT('¬', Pattern.compile("!"), (a, b) -> !a);
+    IMPLICATION('➔', "->", (a, b) -> !a || b),
+    OR('⋁', "/", (a, b) -> a || b),
+    AND('⋀', "&", (a, b) -> a && b),
+    NOT('¬', "!", (a, b) -> !a);
 
     private final char operator;
-    private final Pattern regex;
+    @NotNull
+    private final String inputOperator;
+    @NotNull
     private final BiPredicate<Boolean, Boolean> predicate;
 
-    Operator(char operator, Pattern regex, BiPredicate<Boolean, Boolean> predicate) {
+    Operator(char operator, @NotNull String inputOperator, @NotNull BiPredicate<Boolean, Boolean> predicate) {
         this.operator = operator;
-        this.regex = regex;
+        this.inputOperator = inputOperator;
         this.predicate = predicate;
     }
 
@@ -47,7 +50,7 @@ public enum Operator {
     @Nullable
     public static Operator getOperator(@NotNull String operator) {
         for (Operator op : values()) {
-            if (operator.matches(op.regex.pattern()) || Objects.equals(operator, op.operator + "")) {
+            if (operator.matches(op.inputOperator) || Objects.equals(operator, String.valueOf(op.operator))) {
                 return op;
             }
         }
@@ -71,15 +74,16 @@ public enum Operator {
      * @return True if the string is used to represent an operator
      */
     public static boolean isOperator(@NotNull String op) {
-        return Arrays.stream(Operator.values()).anyMatch(operator -> op.matches(operator.regex.pattern()) || operator.operator == op.charAt(0));
+        return Arrays.stream(Operator.values()).anyMatch(operator -> op.matches(operator.inputOperator) || operator.operator == op.charAt(0));
     }
 
     public char getOperator() {
         return operator;
     }
 
-    public Pattern getRegex() {
-        return regex;
+    @NotNull
+    public String getInputOperator() {
+        return inputOperator;
     }
 
     @Override

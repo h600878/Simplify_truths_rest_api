@@ -15,6 +15,8 @@ import com.github.martials.results.ResultWithTable;
 import com.github.martials.utils.ExpressionUtils;
 import com.github.martials.utils.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -62,6 +64,12 @@ public final class ApiController { // TODO all params, body and headers are show
             @ApiResponse(responseCode = "400", description = "The expression was not valid",
                     content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
+    @Parameters(value = {
+            @Parameter(name = "exp", description = "A logical expression"),
+            @Parameter(name = "lang", description = "Overrides the language in the header"),
+            @Parameter(name = "simplify", description = "Whether or not to simplify the given expression"),
+            @Parameter(name = "caseSensitive", description = "Wheter or not to use case sensitive variables"),
+    })
     @GetMapping("/simplify/{exp}")
     public ResponseEntity<EmptyResult> simplify(
             @PathVariable @NotNull final String exp,
@@ -107,6 +115,16 @@ public final class ApiController { // TODO all params, body and headers are show
             @ApiResponse(responseCode = "404", description = "The body was empty",
                     content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
+    @Parameters(value = {
+            @Parameter(name = "lang", description = "Overrides the language in the header"),
+            @Parameter(name = "sort", description = "Sort the variables in the table"),
+            @Parameter(name = "hide", description = "Hide the variables in the table"),
+            @Parameter(name = "hideIntermediate", description = "Hide the intermediate steps in the table"),
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "A logical expression of type Expression",
+            content = @Content(schema = @Schema(implementation = Expression.class), mediaType = "application/json")
+    )
     @PostMapping("/table")
     public ResponseEntity<EmptyResult> table(
             @RequestBody(required = false) @Nullable final Expression exp,
@@ -160,6 +178,14 @@ public final class ApiController { // TODO all params, body and headers are show
                     content = {@Content(schema = @Schema(implementation = ResultWithTable.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "The expression was not valid",
                     content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
+    })
+    @Parameters(value = {
+            @Parameter(name = "exp", description = "The expression to simplify and generate a table for"),
+            @Parameter(name = "lang", description = "Overrides the language in the header"),
+            @Parameter(name = "simplify", description = "Simplify the expression"),
+            @Parameter(name = "sort", description = "Sort the variables in the table"),
+            @Parameter(name = "hide", description = "Hide the variables in the table"),
+            @Parameter(name = "hideIntermediate", description = "Hide the intermediate steps in the table"),
     })
     @GetMapping("/simplify/table/{exp}")
     public ResponseEntity<EmptyResult> simplifyAndTable(

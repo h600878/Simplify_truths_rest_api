@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.martials.enums.Language;
 import com.github.martials.enums.Operator;
 import com.github.martials.utils.StringUtils;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperties;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
@@ -18,9 +19,9 @@ import java.util.Objects;
 
 @Schema(name = "Expression", description = "A tree structure that represents an expression, each node contains an operator and two expressions.")
 @SchemaProperties(value = {
-        @SchemaProperty(name = "left", schema = @Schema(implementation = Expression.class)),
-        @SchemaProperty(name = "right", schema = @Schema(implementation = Expression.class)),
-        @SchemaProperty(name = "operator", schema = @Schema(implementation = Operator.class)),
+        @SchemaProperty(name = "left", schema = @Schema(implementation = Expression.class, nullable = true)),
+        @SchemaProperty(name = "right", schema = @Schema(implementation = Expression.class, nullable = true)),
+        @SchemaProperty(name = "operator", schema = @Schema(implementation = Operator.class, nullable = true)),
 })
 public class Expression { // TODO move some of the logic it's own class and extend it, left, right, operator, etc.
 
@@ -47,6 +48,7 @@ public class Expression { // TODO move some of the logic it's own class and exte
      * @param right    The expression to the right of the operator
      * @param trailing Trailing content after the expression, like closing parentheses
      * @param atomic   The atomic value of the expression, if the expression is not atomic this is 'null'.
+     * @throws AssertionError If the operator is 'NOT'
      */
     public Expression(@NotNull String leading,
                       @Nullable Expression left,
@@ -738,6 +740,7 @@ public class Expression { // TODO move some of the logic it's own class and exte
         this.atomic = atomic;
     }
 
+    @Hidden
     public void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
     }

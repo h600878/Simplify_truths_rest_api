@@ -14,7 +14,9 @@ import java.util.Objects;
 @Schema(name = "TruthTable", description = "A truth table for a given expression")
 public class TruthTable {
 
+    @NotNull
     private final Expression[] expressions;
+    @NotNull
     private final boolean[][] truthMatrix;
 
     public TruthTable(@NotNull Expression[] expressions, Hide hide, Sort sort) {
