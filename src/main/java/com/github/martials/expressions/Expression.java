@@ -24,11 +24,17 @@ import java.util.Objects;
 })
 public class Expression { // TODO move some of the logic it's own class and extend it, left, right, operator, etc.
 
+    @NotNull
     private String leading;
+    @Nullable
     private Expression left;
+    @Nullable
     private Operator operator;
+    @Nullable
     private Expression right;
+    @NotNull
     private String trailing;
+    @Nullable
     private String atomic;
     private boolean caseSensitive;
 
@@ -42,12 +48,12 @@ public class Expression { // TODO move some of the logic it's own class and exte
      * @param trailing Trailing content after the expression, like closing parentheses
      * @param atomic   The atomic value of the expression, if the expression is not atomic this is 'null'.
      */
-    public Expression(String leading,
-                      Expression left,
-                      Operator operator,
-                      Expression right,
-                      String trailing,
-                      String atomic,
+    public Expression(@NotNull String leading,
+                      @Nullable Expression left,
+                      @Nullable Operator operator,
+                      @Nullable Expression right,
+                      @NotNull String trailing,
+                      @Nullable String atomic,
                       boolean caseSensitive) {
         assert operator != Operator.NOT : "Operator cannot be 'not'.";
 
@@ -346,11 +352,11 @@ public class Expression { // TODO move some of the logic it's own class and exte
     }
 
     private boolean bothChildrenInverse() {
-        return left.isInverse() && right.isInverse();
+        return (left != null && left.isInverse()) && right != null && right.isInverse();
     }
 
     private boolean eitherChildInverse() {
-        return left.isInverse() || right.isInverse();
+        return left != null && left.isInverse() || right != null && right.isInverse();
     }
 
     /**
@@ -444,10 +450,10 @@ public class Expression { // TODO move some of the logic it's own class and exte
                 else {
                     if (!left.equalsAndOpposite(right)) {
 
-                        final boolean leftLeftEqRightLeft = left.left.equals(right.left);
-                        final boolean leftRightEqRightRight = left.right.equals(right.right);
-                        final boolean leftLeftEqRightRight = left.left.equals(right.right);
-                        final boolean leftRightEqRightLeft = left.right.equals(right.left);
+                        final boolean leftLeftEqRightLeft = Objects.equals(left.left, right.left);
+                        final boolean leftRightEqRightRight = Objects.equals(left.right, right.right);
+                        final boolean leftLeftEqRightRight = Objects.equals(left.left, right.right);
+                        final boolean leftRightEqRightLeft = Objects.equals(left.right, right.left);
 
                         // Ex: (A | B) | (A & B), remove (A & B)
                         if (left.inverseEqual(right) &&
@@ -664,18 +670,19 @@ public class Expression { // TODO move some of the logic it's own class and exte
     }
 
     public boolean bothChildrenAtomic() {
-        return left.isAtomic() && right.isAtomic();
+        return left != null && left.isAtomic() && right != null && right.isAtomic();
     }
 
     public boolean eitherChildAtomic() {
-        return left.isAtomic() || right.isAtomic();
+        return left != null && left.isAtomic() || right != null && right.isAtomic();
     }
 
+    @NotNull
     public String getLeading() {
         return leading;
     }
 
-    public void setLeading(String leading) {
+    public void setLeading(@NotNull String leading) {
         this.leading = leading;
     }
 
@@ -683,35 +690,39 @@ public class Expression { // TODO move some of the logic it's own class and exte
         this.leading += leading;
     }
 
+    @Nullable
     public Expression getLeft() {
         return left;
     }
 
-    public void setLeft(Expression left) {
+    public void setLeft(@Nullable Expression left) {
         this.left = left;
     }
 
+    @Nullable
     public Operator getOperator() {
         return operator;
     }
 
-    public void setOperator(Operator operator) {
+    public void setOperator(@Nullable Operator operator) {
         this.operator = operator;
     }
 
+    @Nullable
     public Expression getRight() {
         return right;
     }
 
-    public void setRight(Expression right) {
+    public void setRight(@Nullable Expression right) {
         this.right = right;
     }
 
+    @NotNull
     public String getTrailing() {
         return trailing;
     }
 
-    public void setTrailing(String trailing) {
+    public void setTrailing(@NotNull String trailing) {
         this.trailing = trailing;
     }
 
@@ -723,7 +734,7 @@ public class Expression { // TODO move some of the logic it's own class and exte
         return atomic;
     }
 
-    public void setAtomic(String atomic) {
+    public void setAtomic(@Nullable String atomic) {
         this.atomic = atomic;
     }
 

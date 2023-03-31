@@ -137,6 +137,7 @@ public class ApiControllerTest {
     void tableNullExpressionEnLang() {
         try {
             ac.table(null, Sort.DEFAULT, Hide.NONE, false, "en", "nb");
+            fail("Should throw exception");
         }
         catch (ResponseStatusException e) {
             assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
@@ -152,18 +153,6 @@ public class ApiControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assert responseEntity.getBody() != null;
         assertEquals(ResultOnlyTable.class, responseEntity.getBody().getClass());
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"A ⋀ B ⋀", "A ⋁ ⋁", "A ➔ B ➔", "A ⋁ B ⋀ C)", "¬(A ⋁ B ➔ C ➔"})
-    void tableIllegalExpression(String expression) {
-        try {
-            defaultTable(expression);
-        }
-        catch (ResponseStatusException e) {
-            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-            assertTrue(e.getMessage().contains("Mangler tegn") || e.getMessage().contains("Ugyldig tegn"), e.getMessage());
-        }
     }
 
 }

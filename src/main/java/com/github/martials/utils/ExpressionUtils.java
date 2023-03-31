@@ -62,8 +62,10 @@ public class ExpressionUtils {
     }
 
     @NotNull
-    public Expression simplify() {
+    public Expression simplify() throws IllegalCharacterException, MissingCharacterException, TooBigExpressionException {
         assert expression != null : "Expression cannot be null";
+
+        isLegalExpression();
 
         log.debug("Simplifying expression: {}", expression);
         final Expression exp = simplifyRec(expression, simplify);
@@ -233,7 +235,7 @@ public class ExpressionUtils {
 
         final String atomicValues = "a-zA-ZæøåÆØÅ",
                 legalCharacters = atomicValues + "0-9\\(\\)⋁⋀➔¬ _=-",
-                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁➔]|[⋀⋁➔¬] *$|[" + atomicValues + "] +[" + atomicValues + "]";
+                illegalRegex = "|\\) *\\(|\\( *\\)|[⋀⋁¬] *[⋀⋁➔]|^ *[⋀⋁➔]|[⋀⋁➔¬] *$|[" + atomicValues + "] +[" + atomicValues + "]";
         final Pattern regex = Pattern.compile("[^" + legalCharacters + "]" + illegalRegex);
         final Matcher matcher = regex.matcher(expression);
 

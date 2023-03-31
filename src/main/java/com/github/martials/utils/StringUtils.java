@@ -46,14 +46,17 @@ public abstract class StringUtils {
     public static String replaceOperators(@NotNull String exp) {
 
         for (Operator op : Operator.values()) {
-            exp = exp.replaceAll(op.getRegex().pattern(), op.getOperator() + "");
+            exp = exp.replaceAll(op.getRegex().pattern(), String.valueOf(op.getOperator()));
         }
         return exp;
     }
 
     @NotNull
     public static String capitalizeFirstLetter(@NotNull String string) {
-        return string.substring(0, 1).toUpperCase() + string.substring(1);
+        if (string.length() == 0) {
+            return "";
+        }
+        return string.substring(0, 1).toUpperCase() + (string.length() > 1 ? string.substring(1) : "");
     }
 
     @Nullable

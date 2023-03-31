@@ -210,24 +210,18 @@ public final class ApiController { // TODO all params, body and headers are show
         return eu;
     }
 
-    private void isLegal(@NotNull ExpressionUtils eu) {
+    @NotNull
+    private ResponseEntity<EmptyResult> simplify(@NotNull ExpressionUtils eu, @NotNull Function<Expression, EmptyResult> function) {
+
+        final Expression expression;
+
         try {
-            eu.isLegalExpression();
+            expression = eu.simplify();
         }
         catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
             log.debug(Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-    }
-
-    @NotNull
-    private ResponseEntity<EmptyResult> simplify(@NotNull ExpressionUtils eu, @NotNull Function<Expression, EmptyResult> function) {
-
-        isLegal(eu);
-
-        final Expression expression;
-
-        expression = eu.simplify();
         log.debug("Expression simplified to: {}", expression);
 
         return ResponseEntity.ok(function.apply(expression));
