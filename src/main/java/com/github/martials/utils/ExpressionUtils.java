@@ -248,7 +248,7 @@ public class ExpressionUtils {
         final Pattern pattern = Pattern.compile(regex);
         final Matcher matcher = pattern.matcher(expression);
 
-        removeWhiteSpace();
+        final String spaceLess = removeWhiteSpace();
 
         if (matcher.find()) {
             throw new ExpressionInvalidException(language, matcher.group(), matcher.start());
@@ -260,8 +260,8 @@ public class ExpressionUtils {
         final Stack<Character> brackets = new Stack<>();
         int numberOfOperators = 0;
 
-        for (int i = 0; i < expression.length(); i++) {
-            char charAtI = expression.charAt(i);
+        for (int i = 0; i < spaceLess.length(); i++) {
+            char charAtI = spaceLess.charAt(i);
 
             if (Operator.isOperator(charAtI) && charAtI != Operator.NOT.getOperator() && ++numberOfOperators > MAX_EXPRESSION_SIZE - 1) {
                 throw new TooBigExpressionException(language);
@@ -285,13 +285,15 @@ public class ExpressionUtils {
             }
         }
         if (brackets.size() > 0) {
-            throw new MissingCharacterException(language, ')', expression.length() - 1);
+            throw new MissingCharacterException(language, ')', expression.length());
         }
     }
 
-    private void removeWhiteSpace() {
-        expression = expression.replaceAll(" ", "");
-        log.debug("Removed whitespace from expression, {}", expression);
+    private String removeWhiteSpace() {
+        assert expression != null : "Expression cannot be null";
+        String spaceLess = expression.replaceAll(" ", "");
+        log.debug("Removed whitespace from expression, {}", spaceLess);
+        return spaceLess;
     }
 
     private static boolean isParentheses(char c) {
