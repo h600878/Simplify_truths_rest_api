@@ -111,7 +111,7 @@ public final class ApiController { // TODO all params, body and headers are show
             @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated",
                     content = {@Content(schema = @Schema(implementation = ResultOnlyTable.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "The expression was not valid",
-                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "404", description = "The body was empty",
                     content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
@@ -145,7 +145,7 @@ public final class ApiController { // TODO all params, body and headers are show
         }
 
         try {
-            new ExpressionUtils(exp.toString(), false, language).isLegalExpression();
+            ExpressionUtils.isLegalExpression(exp.toString(), language);
         }
         catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
             log.debug(Arrays.toString(e.getStackTrace()));
@@ -177,7 +177,7 @@ public final class ApiController { // TODO all params, body and headers are show
             @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated",
                     content = {@Content(schema = @Schema(implementation = ResultWithTable.class), mediaType = "application/json")}),
             @ApiResponse(responseCode = "400", description = "The expression was not valid",
-                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "application/json")}),
     })
     @Parameters(value = {
             @Parameter(name = "exp", description = "The expression to simplify and generate a table for"),
@@ -222,6 +222,42 @@ public final class ApiController { // TODO all params, body and headers are show
         log.debug("Result sent: {}", result);
         return result;
     }
+
+    @Operation(
+            summary = "Check if an expression is valid",
+            description = "Check if an expression is valid, otherwise return an error message.",
+            tags = {"Check"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The expression was valid",
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "application/json")}),
+            @ApiResponse(responseCode = "400", description = "The expression was not valid",
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "application/json")}),
+    })
+    @Parameters(value = {
+            @Parameter(name = "exp", description = "The expression to check"),
+            @Parameter(name = "lang", description = "Overrides the language in the header"),
+    })
+    @GetMapping("isLegal/{exp}")
+    public ResponseEntity<String> isLegal(
+            @PathVariable String exp,
+            @RequestParam(required = false) String lang,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
+        log.info("isLegal call with the following parametres: exp={}, lang={}, header={}", exp, lang, header);
+
+        Language language = Language.setLanguage(lang, header);
+        try {
+            exp = StringUtils.replaceOperators(exp); // TODO should not be needed
+            ExpressionUtils.isLegalExpression(exp, language);
+        }
+        catch (Exception e) {
+            log.debug(Arrays.toString(e.getStackTrace()));
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+        log.debug("Expression is legal");
+        return ResponseEntity.ok("OK");
+    }
+
 
     @NotNull
     private ExpressionUtils getExpressionUtils(String exp, String lang, String header, boolean simplify, boolean caseSensitive, StopWatch sw) {

@@ -216,7 +216,12 @@ public class ExpressionUtils {
         return allEqual ? operators.get(operators.size() / 2) : op;
     }
 
-    // TODO return better error messages
+    public static void isLegalExpression(@NotNull String expression, @NotNull Language language) throws IllegalCharacterException, MissingCharacterException, TooBigExpressionException {
+        new ExpressionUtils(expression, false, language).isLegalExpression();
+    }
+
+    // TODO return better error messages, should return the index of the error
+    // TODO check the input operators instead of the output operators
 
     /**
      * Checks if a string is a valid truth expression. If the string is valid, it will return "empty string", otherwise an error message

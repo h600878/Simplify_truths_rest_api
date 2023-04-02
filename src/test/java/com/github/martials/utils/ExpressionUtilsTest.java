@@ -37,7 +37,7 @@ public class ExpressionUtilsTest {
     @ValueSource(strings = {"A", "Hello", "Å", "Hello ⋀ World"})
     void isLegalExpressionTest(String value) {
         eu.setExpression(value);
-        assertDoesNotThrow(eu::isLegalExpression);
+        assertDoesNotThrow(() -> eu.isLegalExpression());
     }
 
     @ParameterizedTest
@@ -63,7 +63,7 @@ public class ExpressionUtilsTest {
     @Test
     void notTooBigExpressionTest() {
         eu.setExpression("A⋀B⋀C⋀D⋀E⋀F⋀G⋀H⋀I⋀J");
-        assertDoesNotThrow(eu::isLegalExpression);
+        assertDoesNotThrow(() -> eu.isLegalExpression());
     }
 
 }
