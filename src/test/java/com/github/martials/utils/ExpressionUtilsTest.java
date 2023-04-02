@@ -1,6 +1,6 @@
 package com.github.martials.utils;
 
-import com.github.martials.exceptions.IllegalCharacterException;
+import com.github.martials.exceptions.ExpressionInvalidException;
 import com.github.martials.exceptions.MissingCharacterException;
 import com.github.martials.exceptions.TooBigExpressionException;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,33 +37,33 @@ public class ExpressionUtilsTest {
     @ValueSource(strings = {"A", "Hello", "Å", "Hello ⋀ World"})
     void isLegalExpressionTest(String value) {
         eu.setExpression(value);
-        assertDoesNotThrow(() -> eu.isLegalExpression());
+        assertDoesNotThrow(() -> eu.isValid());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"#", "[", "⋁", "A B", "A⋁⋀", "A(", "A[", "A⋀()", "A¬B", "(A⋀B)(B⋀C)", "Hello World", "TEst a"})
     void throwsIllegalCharExceptionTest(String value) {
         eu.setExpression(value);
-        assertThrows(IllegalCharacterException.class, eu::isLegalExpression);
+        assertThrows(ExpressionInvalidException.class, eu::isValid);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"", "(A", "A⋀(B"})
     void throwsMissingCharExceptionTest(String value) {
         eu.setExpression(value);
-        assertThrows(MissingCharacterException.class, eu::isLegalExpression);
+        assertThrows(MissingCharacterException.class, eu::isValid);
     }
 
     @Test
     void throwsTooBigExceptionTest() {
         eu.setExpression("A⋀B⋀C⋀D⋀E⋀F⋀G⋀H⋀I⋀J⋀K⋀L⋀M⋀N⋀O⋀P");
-        assertThrows(TooBigExpressionException.class, eu::isLegalExpression);
+        assertThrows(TooBigExpressionException.class, eu::isValid);
     }
 
     @Test
     void notTooBigExpressionTest() {
         eu.setExpression("A⋀B⋀C⋀D⋀E⋀F⋀G⋀H⋀I⋀J");
-        assertDoesNotThrow(() -> eu.isLegalExpression());
+        assertDoesNotThrow(() -> eu.isValid());
     }
 
 }

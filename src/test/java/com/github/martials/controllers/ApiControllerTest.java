@@ -52,10 +52,11 @@ public class ApiControllerTest {
     void simplifyIllegalExpression(String expression) {
         try {
             defaultSimplify(expression);
+            fail("Should throw exception");
         }
         catch (ResponseStatusException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
-            assertTrue(e.getMessage().contains("Mangler tegn") || e.getMessage().contains("Ugyldig tegn"), e.getMessage());
+            assertTrue(e.getMessage().contains("Mangler tegn") || e.getMessage().contains("Ulovlig karakter"), e.getMessage());
         }
     }
 
@@ -111,9 +112,10 @@ public class ApiControllerTest {
     void simplifyCustomAcceptLanguage(String expression) {
         try {
             ac.simplify(expression, null, true, false, "en");
+            fail("Should throw exception");
         }
         catch (ResponseStatusException e) {
-            assertTrue(e.getMessage().contains("Missing character") || e.getMessage().contains("Illegal character"));
+            assertTrue(e.getMessage().contains("Missing character") || e.getMessage().contains("Illegal char"));
         }
     }
 

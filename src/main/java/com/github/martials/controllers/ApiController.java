@@ -3,7 +3,7 @@ package com.github.martials.controllers;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Language;
 import com.github.martials.enums.Sort;
-import com.github.martials.exceptions.IllegalCharacterException;
+import com.github.martials.exceptions.ExpressionInvalidException;
 import com.github.martials.exceptions.MissingCharacterException;
 import com.github.martials.exceptions.TooBigExpressionException;
 import com.github.martials.expressions.Expression;
@@ -145,9 +145,9 @@ public final class ApiController { // TODO all params, body and headers are show
         }
 
         try {
-            ExpressionUtils.isLegalExpression(exp.toString(), language);
+            ExpressionUtils.isValid(exp.toString(), language);
         }
-        catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
+        catch (ExpressionInvalidException | MissingCharacterException | TooBigExpressionException e) {
             log.debug(Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -230,9 +230,9 @@ public final class ApiController { // TODO all params, body and headers are show
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The expression was valid",
-                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "application/json")}),
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "text/plain")}),
             @ApiResponse(responseCode = "400", description = "The expression was not valid",
-                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "application/json")}),
+                    content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "text/plain")}),
     })
     @Parameters(value = {
             @Parameter(name = "exp", description = "The expression to check"),
@@ -247,8 +247,7 @@ public final class ApiController { // TODO all params, body and headers are show
 
         Language language = Language.setLanguage(lang, header);
         try {
-            exp = StringUtils.replaceOperators(exp); // TODO should not be needed
-            ExpressionUtils.isLegalExpression(exp, language);
+            ExpressionUtils.isValid(exp, language);
         }
         catch (Exception e) {
             log.debug(Arrays.toString(e.getStackTrace()));
@@ -280,7 +279,7 @@ public final class ApiController { // TODO all params, body and headers are show
         try {
             expression = eu.simplify();
         }
-        catch (IllegalCharacterException | MissingCharacterException | TooBigExpressionException e) {
+        catch (ExpressionInvalidException | MissingCharacterException | TooBigExpressionException e) {
             log.debug(Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
