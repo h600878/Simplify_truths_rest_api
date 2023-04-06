@@ -2,6 +2,7 @@ package com.github.martials.results;
 
 import com.github.martials.expressions.Expression;
 import com.github.martials.expressions.OrderOperations;
+import jakarta.validation.constraints.NotBlank;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,12 +10,16 @@ import java.util.List;
 
 public class Result extends EmptyResult {
 
+    @NotBlank
     @NotNull
     protected final String before;
+    @NotBlank
     @NotNull
     protected final String after;
+    @NotBlank
     @Nullable
     protected final List<OrderOperations> orderOperations;
+    @NotBlank
     @Nullable
     protected final Expression expression;
 

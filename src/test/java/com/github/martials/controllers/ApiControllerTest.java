@@ -38,7 +38,7 @@ public class ApiControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"a&b", "a/b", "a->b", "a     &    ¬b /     c"})
+    @ValueSource(strings = {"a&b", "a:b", "a->b", "a     &    ¬b :     c"})
     void simplifyLegalExpression(String expression) {
         ResponseEntity<EmptyResult> responseEntity = defaultSimplify(expression);
         assertTrue(responseEntity.hasBody());
@@ -48,7 +48,7 @@ public class ApiControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"a&b&", "a//", "a->b->", "a^c", "a%", ""})
+    @ValueSource(strings = {"a&b&", "a::", "a->b->", "a^c", "a%", ""})
     void simplifyIllegalExpression(String expression) {
         try {
             defaultSimplify(expression);
@@ -61,7 +61,7 @@ public class ApiControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"A & A", "A -> B", "A / B & B / A"})
+    @ValueSource(strings = {"A & A", "A -> B", "A : B & B : A"})
     void dontSimplifyLegalExpression(String expression) {
         ResponseEntity<EmptyResult> responseEntity = defaultDontSimplify(expression);
         assertTrue(responseEntity.hasBody());
@@ -87,7 +87,7 @@ public class ApiControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"A & a", "A / A"})
+    @ValueSource(strings = {"A & a", "A : A"})
     void simplifyCaseInsensitive(String expression) {
         ResponseEntity<EmptyResult> responseEntity = defaultSimplify(expression);
 
@@ -97,7 +97,7 @@ public class ApiControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"A&a", "help / Help"})
+    @ValueSource(strings = {"A&a", "help : Help"})
     void simplifyCaseSensitive(String expression) {
         ResponseEntity<EmptyResult> responseEntity = ac.simplify(expression, null, true, true, "nb");
 

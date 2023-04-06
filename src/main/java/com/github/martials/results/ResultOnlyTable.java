@@ -2,6 +2,7 @@ package com.github.martials.results;
 
 import com.github.martials.expressions.TruthTable;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,8 +11,10 @@ import java.util.Arrays;
 @Schema(name = "ResultOnlyTable", description = "Result with only the table table")
 public class ResultOnlyTable extends EmptyResult {
 
+    @NotBlank
     @NotNull
     protected final String expression;
+    @Nullable
     protected final String[] header;
     @Nullable
     protected final TruthTable table;

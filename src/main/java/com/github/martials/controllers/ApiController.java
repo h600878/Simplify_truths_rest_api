@@ -39,7 +39,7 @@ import java.util.function.Function;
 @CrossOrigin
 @RestController
 @Tag(name = "Simplify", description = "Simplify Truth-values and generate truth tables.")
-public final class ApiController { // TODO all params, body and headers are shown as required, even if they are not
+public final class ApiController {
 
     private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
@@ -65,8 +65,8 @@ public final class ApiController { // TODO all params, body and headers are show
                     content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
     @Parameters(value = {
-            @Parameter(name = "exp", description = "A logical expression"),
-            @Parameter(name = "lang", description = "Overrides the language in the header"),
+            @Parameter(name = "exp", description = "A logical expression", example = "A & B : C -> !D"),
+            @Parameter(name = "lang", description = "Overrides the language in the header", example = "en"),
             @Parameter(name = "simplify", description = "Whether or not to simplify the given expression"),
             @Parameter(name = "caseSensitive", description = "Wheter or not to use case sensitive variables"),
     })
@@ -116,7 +116,7 @@ public final class ApiController { // TODO all params, body and headers are show
                     content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "html/text")}),
     })
     @Parameters(value = {
-            @Parameter(name = "lang", description = "Overrides the language in the header"),
+            @Parameter(name = "lang", description = "Overrides the language in the header", example = "en"),
             @Parameter(name = "sort", description = "Sort the variables in the table"),
             @Parameter(name = "hide", description = "Hide the variables in the table"),
             @Parameter(name = "hideIntermediate", description = "Hide the intermediate steps in the table"),
@@ -180,8 +180,8 @@ public final class ApiController { // TODO all params, body and headers are show
                     content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "application/json")}),
     })
     @Parameters(value = {
-            @Parameter(name = "exp", description = "The expression to simplify and generate a table for"),
-            @Parameter(name = "lang", description = "Overrides the language in the header"),
+            @Parameter(name = "exp", description = "The expression to simplify and generate a table for", example = "A & B : C -> !D"),
+            @Parameter(name = "lang", description = "Overrides the language in the header", example = "en"),
             @Parameter(name = "simplify", description = "Simplify the expression"),
             @Parameter(name = "sort", description = "Sort the variables in the table"),
             @Parameter(name = "hide", description = "Hide the variables in the table"),
@@ -235,14 +235,14 @@ public final class ApiController { // TODO all params, body and headers are show
                     content = {@Content(schema = @Schema(implementation = EmptyResult.class), mediaType = "text/plain")}),
     })
     @Parameters(value = {
-            @Parameter(name = "exp", description = "The expression to check"),
-            @Parameter(name = "lang", description = "Overrides the language in the header"),
+            @Parameter(name = "exp", description = "The expression to check", example = "A & B : C -> !D"),
+            @Parameter(name = "lang", description = "Overrides the language in the header", example = "en"),
     })
     @GetMapping("isLegal/{exp}")
     public ResponseEntity<String> isLegal(
-            @PathVariable String exp,
-            @RequestParam(required = false) String lang,
-            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") String header) {
+            @PathVariable final String exp,
+            @RequestParam(required = false) final String lang,
+            @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, defaultValue = "nb") final String header) {
         log.info("isLegal call with the following parametres: exp={}, lang={}, header={}", exp, lang, header);
 
         Language language = Language.setLanguage(lang, header);

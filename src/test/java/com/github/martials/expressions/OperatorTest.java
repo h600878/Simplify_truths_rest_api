@@ -16,7 +16,7 @@ public class OperatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/", "⋁"})
+    @ValueSource(strings = {":", "⋁"})
     void getOrOperatorFromString(String operator) {
         assertEquals(Operator.OR, Operator.getOperator(operator));
     }
@@ -40,7 +40,7 @@ public class OperatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(chars = {'/', '⋁'})
+    @ValueSource(chars = {':', '⋁'})
     void getOrOperatorFromChar(char operator) {
         assertEquals(Operator.OR, Operator.getOperator(operator));
     }
@@ -58,13 +58,13 @@ public class OperatorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"&", "/", "!", "¬", "⋁", "⋀", "➔", "->"})
+    @ValueSource(strings = {"&", ":", "!", "¬", "⋁", "⋀", "➔", "->"})
     void isOperatorString(String operator) {
         assertTrue(Operator.isOperator(operator), "Operator " + operator + " is not recognized");
     }
 
     @ParameterizedTest
-    @ValueSource(chars = {'&', '/', '!', '¬', '⋁', '⋀', '➔'})
+    @ValueSource(chars = {'&', ':', '!', '¬', '⋁', '⋀', '➔'})
     void isOperatorString(char operator) {
         assertTrue(Operator.isOperator(operator), "Operator " + operator + " is not recognized");
     }

@@ -23,3 +23,5 @@ martials:
     email: me@martials.no
     url: https://h600878.github.io/contact-me/
 
+springdoc:
+  nullable-request-parameter-enabled: false

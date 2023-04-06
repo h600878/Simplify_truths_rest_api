@@ -16,16 +16,17 @@ import java.util.function.BiPredicate;
  */
 @Schema(name = "Operator",
         description = "An enum representing the operators used in the expression." +
-                " The current operators are: AND(&), OR(/), IMPLICATION(->), NOT(!)",
+                " The current operators are: AND(&), OR(:), IMPLICATION(->), NOT(!)",
         allowableValues = {"AND", "OR", "IMPLICATION", "NOT"},
         nullable = true
 )
 public enum Operator {
     IMPLICATION('➔', "->", (a, b) -> !a || b),
-    OR('⋁', "/", (a, b) -> a || b),
+    OR('⋁', ":", (a, b) -> a || b),
     AND('⋀', "&", (a, b) -> a && b),
     NOT('¬', "!", (a, b) -> !a);
 
+    @Schema(name = "operator", description = "The resulted operator", oneOf = Character.class)
     private final char operator;
     @NotNull
     private final String inputOperator;
