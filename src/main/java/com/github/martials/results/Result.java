@@ -23,9 +23,9 @@ public class Result extends EmptyResult {
     @Nullable
     protected final Expression expression;
 
-    public Result(@NotNull String before, @NotNull String after,
+    public Result(String version, @NotNull String before, @NotNull String after,
                   @Nullable List<OrderOperations> orderOperations, @Nullable Expression expression) {
-        super();
+        super(version);
         this.before = before;
         this.after = after;
         this.orderOperations = orderOperations;

@@ -46,7 +46,7 @@ public abstract class StringUtils {
     public static String replaceOperators(@NotNull String exp) {
 
         for (Operator op : Operator.values()) {
-            exp = exp.replaceAll(op.getInputOperator(), String.valueOf(op.getOperator()));
+            exp = exp.replaceAll(op.getInputOperator(), String.valueOf(op.getOutputOperator()));
         }
         return exp;
     }

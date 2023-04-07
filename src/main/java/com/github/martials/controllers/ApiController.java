@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,9 @@ import java.util.function.Function;
 @RestController
 @Tag(name = "Simplify", description = "Simplify Truth-values and generate truth tables.")
 public final class ApiController {
+
+    @Value("${martials.version}")
+    private String version;
 
     private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
@@ -85,7 +89,7 @@ public final class ApiController {
         final ExpressionUtils eu = getExpressionUtils(exp, lang, header, simplify, caseSensitive, sw);
 
         final ResponseEntity<EmptyResult> result = simplify(eu, expression ->
-                new Result(exp, expression.toString(), eu.getOperations(), expression));
+                new Result(version, exp, expression.toString(), eu.getOperations(), expression));
 
         if (log.isDebugEnabled()) {
             sw.stop();
@@ -105,7 +109,7 @@ public final class ApiController {
             summary = "Generate a truth table",
             description = "Generate a truth table, and return the result." +
                     " If the expression is not valid, the result will be empty with an error message.",
-            tags = {"table"}
+            tags = {"Table"}
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated",
@@ -155,7 +159,7 @@ public final class ApiController {
         final TruthTable table = new TruthTable(exp.toSetArray(hideIntermediate));
         log.debug("New table created: {}", table);
 
-        final ResultOnlyTable tableResult = new ResultOnlyTable(exp.toString(), StringUtils.mapToStrings(table), table);
+        final ResultOnlyTable tableResult = new ResultOnlyTable(version, exp.toString(), StringUtils.mapToStrings(table), table);
         final ResponseEntity<EmptyResult> result = ResponseEntity.ok(tableResult);
         log.debug("Result sent: {}", result);
 
@@ -171,7 +175,7 @@ public final class ApiController {
             summary = "Simplify a truth expression and generate a truth table",
             description = "Simplify a truth expression, and return the result." +
                     " If the expression is not valid, the result will be empty with an error message.",
-            tags = {"Simplify", "table"}
+            tags = {"Simplify", "Table"}
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The expression was valid and a table was generated",
@@ -210,7 +214,7 @@ public final class ApiController {
             TruthTable table = new TruthTable(expression.toSetArray(hideIntermediate), hide, sort);
             log.debug("New table created: {}", table);
 
-            return new ResultWithTable(exp, expression.toString(), eu.getOperations(),
+            return new ResultWithTable(version, exp, expression.toString(), eu.getOperations(),
                     expression, StringUtils.mapToStrings(table), table);
         });
 
@@ -226,7 +230,7 @@ public final class ApiController {
     @Operation(
             summary = "Check if an expression is valid",
             description = "Check if an expression is valid, otherwise return an error message.",
-            tags = {"Check"}
+            tags = {"Vaildation"}
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The expression was valid",
@@ -256,7 +260,6 @@ public final class ApiController {
         log.debug("Expression is legal");
         return ResponseEntity.ok("OK");
     }
-
 
     @NotNull
     private ExpressionUtils getExpressionUtils(String exp, String lang, String header, boolean simplify, boolean caseSensitive, StopWatch sw) {

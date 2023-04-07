@@ -18,6 +18,8 @@ import java.util.function.BiPredicate;
         description = "An enum representing the operators used in the expression." +
                 " The current operators are: AND(&), OR(:), IMPLICATION(->), NOT(!)",
         allowableValues = {"AND", "OR", "IMPLICATION", "NOT"},
+        example = "AND",
+        type = "string",
         nullable = true
 )
 public enum Operator {
@@ -26,15 +28,14 @@ public enum Operator {
     AND('⋀', "&", (a, b) -> a && b),
     NOT('¬', "!", (a, b) -> !a);
 
-    @Schema(name = "operator", description = "The resulted operator", oneOf = Character.class)
-    private final char operator;
+    private final char outputOperator;
     @NotNull
     private final String inputOperator;
     @NotNull
     private final BiPredicate<Boolean, Boolean> predicate;
 
-    Operator(char operator, @NotNull String inputOperator, @NotNull BiPredicate<Boolean, Boolean> predicate) {
-        this.operator = operator;
+    Operator(char outputOperator, @NotNull String inputOperator, @NotNull BiPredicate<Boolean, Boolean> predicate) {
+        this.outputOperator = outputOperator;
         this.inputOperator = inputOperator;
         this.predicate = predicate;
     }
@@ -51,7 +52,7 @@ public enum Operator {
     @Nullable
     public static Operator getOperator(@NotNull String operator) {
         for (Operator op : values()) {
-            if (operator.matches(op.inputOperator) || Objects.equals(operator, String.valueOf(op.operator))) {
+            if (operator.matches(op.inputOperator) || Objects.equals(operator, String.valueOf(op.outputOperator))) {
                 return op;
             }
         }
@@ -75,11 +76,11 @@ public enum Operator {
      * @return True if the string is used to represent an operator
      */
     public static boolean isOperator(@NotNull String op) {
-        return Arrays.stream(Operator.values()).anyMatch(operator -> op.matches(operator.inputOperator) || operator.operator == op.charAt(0));
+        return Arrays.stream(Operator.values()).anyMatch(operator -> op.matches(operator.inputOperator) || operator.outputOperator == op.charAt(0));
     }
 
-    public char getOperator() {
-        return operator;
+    public char getOutputOperator() {
+        return outputOperator;
     }
 
     @NotNull
@@ -87,8 +88,9 @@ public enum Operator {
         return inputOperator;
     }
 
+    @NotNull
     @Override
     public String toString() {
-        return Character.toString(operator);
+        return Character.toString(outputOperator);
     }
 }

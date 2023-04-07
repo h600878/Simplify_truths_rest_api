@@ -19,8 +19,8 @@ public class ResultOnlyTable extends EmptyResult {
     @Nullable
     protected final TruthTable table;
 
-    public ResultOnlyTable(@NotNull String expression, @Nullable String[] header, @Nullable TruthTable table) {
-        super();
+    public ResultOnlyTable(String version, @NotNull String expression, @Nullable String[] header, @Nullable TruthTable table) {
+        super(version);
         this.expression = expression;
         this.header = header;
         this.table = table;

@@ -263,7 +263,7 @@ public class ExpressionUtils {
         for (int i = 0; i < spaceLess.length(); i++) {
             char charAtI = spaceLess.charAt(i);
 
-            if (Operator.isOperator(charAtI) && charAtI != Operator.NOT.getOperator() && ++numberOfOperators > MAX_EXPRESSION_SIZE - 1) {
+            if (Operator.isOperator(charAtI) && charAtI != Operator.NOT.getOutputOperator() && ++numberOfOperators > MAX_EXPRESSION_SIZE - 1) {
                 throw new TooBigExpressionException(language);
             }
 
@@ -309,7 +309,7 @@ public class ExpressionUtils {
         boolean is = false;
         int index = 0;
 
-        while (stringExp.charAt(index) == Operator.NOT.getOperator()) {
+        while (stringExp.charAt(index) == Operator.NOT.getOutputOperator()) {
             index++;
         }
 

@@ -25,3 +25,5 @@ martials:
 
 springdoc:
   nullable-request-parameter-enabled: false
+  swagger-ui:
+    path: /docs

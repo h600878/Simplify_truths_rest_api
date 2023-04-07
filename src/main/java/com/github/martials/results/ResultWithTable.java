@@ -18,10 +18,10 @@ public class ResultWithTable extends Result {
     @Nullable
     private final TruthTable table;
 
-    public ResultWithTable(@NotNull String before, @NotNull String after,
+    public ResultWithTable(String version, @NotNull String before, @NotNull String after,
                            @Nullable List<OrderOperations> orderOperations, @Nullable Expression expression,
                            @Nullable String[] header, @Nullable TruthTable table) {
-        super(before, after, orderOperations, expression);
+        super(version, before, after, orderOperations, expression);
         this.header = header;
         this.table = table;
     }

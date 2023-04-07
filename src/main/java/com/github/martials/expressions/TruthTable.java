@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.martials.enums.Hide;
 import com.github.martials.enums.Sort;
 import com.github.martials.utils.ExpressionUtils;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +20,8 @@ public class TruthTable {
     @NotNull
     private final Expression[] expressions;
     @NotNull
+    @SchemaProperty(name = "truthMatrix", array = @ArraySchema(
+            schema = @Schema(type = "boolean", description = "A matrix with the boolean values for the given expression")))
     private final boolean[][] truthMatrix;
 
     public TruthTable(@NotNull Expression[] expressions, Hide hide, Sort sort) {
@@ -153,8 +158,9 @@ public class TruthTable {
 
     /**
      * Resolves the result of an expression, using the truth row
+     *
      * @param truthRow The truth row to search through
-     * @param exp The expression to resolve
+     * @param exp      The expression to resolve
      * @return The result of the expression or false if not found
      */
     private boolean resolveResult(@NotNull boolean[] truthRow, @Nullable Expression exp) {
