@@ -24,7 +24,7 @@ import java.util.function.BiPredicate;
 )
 public enum Operator {
     IMPLICATION('➔', "->", (a, b) -> !a || b),
-    OR('⋁', ":", (a, b) -> a || b),
+    OR('⋁', "\\|", (a, b) -> a || b),
     AND('⋀', "&", (a, b) -> a && b),
     NOT('¬', "!", (a, b) -> !a);
 
