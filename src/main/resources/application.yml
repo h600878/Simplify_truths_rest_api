@@ -14,7 +14,7 @@ server:
   port: 8080
 
 martials:
-  version: 2.1.0
+  version: 2.1.1
   api:
     dev-url: http://localhost:8080
     prod-url: https://api.martials.no/simplify-truths/do
@@ -26,4 +26,4 @@ martials:
 springdoc:
   nullable-request-parameter-enabled: false
   swagger-ui:
-    path: /docs
+    path: /
