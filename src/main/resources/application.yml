@@ -11,6 +11,8 @@ spring:
       suffix: .jsp
 
 server:
+  error:
+    include-message: always
   port: 8080
 
 martials:
