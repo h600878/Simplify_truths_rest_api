@@ -201,7 +201,7 @@ public class ExpressionUtils {
             }
         }
 
-        CenterOperator op = operators.get(0);
+        CenterOperator op = operators.getFirst();
         boolean allEqual = true;
 
         // Finds the rightmost operator with the lowest weight, if all the operators are equal, pick the center most
@@ -253,7 +253,7 @@ public class ExpressionUtils {
         if (matcher.find()) {
             throw new ExpressionInvalidException(language, matcher.group(), matcher.start());
         }
-        else if (expression.length() == 0) {
+        else if (expression.isEmpty()) {
             throw new MissingCharacterException(language, 'A', 0);
         }
 
@@ -284,7 +284,7 @@ public class ExpressionUtils {
                 }
             }
         }
-        if (brackets.size() > 0) {
+        if (!brackets.isEmpty()) {
             throw new MissingCharacterException(language, ')', expression.length());
         }
     }

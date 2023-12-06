@@ -53,7 +53,7 @@ public abstract class StringUtils {
 
     @NotNull
     public static String capitalizeFirstLetter(@NotNull String string) {
-        if (string.length() == 0) {
+        if (string.isEmpty()) {
             return "";
         }
         return string.substring(0, 1).toUpperCase() + (string.length() > 1 ? string.substring(1) : "");
